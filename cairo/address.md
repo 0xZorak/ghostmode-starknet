@@ -1,3 +1,25 @@
-contract class hash : 0x2a4482a13cb7f70dce6f7ba99c4ee6ce404379abeddd9b831b6bf24eb71e137
+# ReceiptGate deployment
 
-contract address (mainnet) : 0x78ae662e0cc6d1ab2cfeaf2a51ba8783d88e31886f88a794d142f95a6f8735b
+Sepolia deployment account:
+
+`0x057312187e9667687af5b7befd704a2a0bfe8fcd5d7db600341f5ecd9dc88327`
+
+The private key is stored only in the gitignored `.secrets/sncast-accounts.json`.
+
+## Historical Sepolia ReceiptGate — do not configure
+
+This deployment predates the seller-authority constructor and signed `privacy_invoke`
+calldata. It is retained only as historical chain evidence and is ABI-incompatible
+with the current application. Deploy a fresh contract using `docs/SEPOLIA_DEPLOYMENT.md`.
+
+- Contract: `0x0464d61f09b05369b320a806ffef39a60afd4c811fead7bad289e85cf3bfcd6f`
+- Class: `0x052df5bfa91063afdb14fbd1a572e18911e1292356c5a4bb1583134a62935b15`
+- Pool: `0x0254a6b2997ef52e9f830ce1f543f6b29768295e8d17e2267d672c552cfe0d91`
+- Declare transaction: `0x051e9a74208a4df49333d838f1ab0faa4f36a6fc497b23098dc899329bb0ba3d`
+- Deploy transaction: `0x0266326d29b7719a56eac097f5b22cdb2a44e49a14416a0b5f35c6dd4520acba`
+
+`npm run gate:verify -- <contract>` returned `valid: true` after deployment.
+
+Do not reuse the Sepolia contract on mainnet. After the testnet release gate
+passes, deploy a separate instance pinned to the verified mainnet pool and set
+`NEXT_PUBLIC_GHOSTMODE_GATE_MAINNET`.

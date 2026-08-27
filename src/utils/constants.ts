@@ -6,13 +6,45 @@ import { ProviderInterface, RpcProvider } from "starknet";
 // moves privately (STRK on Starknet here).
 export const addrSTRK = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
+export type GhostModeNetwork = "sepolia" | "mainnet";
+
+// Sepolia is the safe default. Mainnet can only be selected by an explicit env
+// change and still remains disabled until its own gate and seller are configured.
+export const GhostModeTargetNetwork: GhostModeNetwork =
+    process.env.NEXT_PUBLIC_GHOSTMODE_NETWORK === "mainnet" ? "mainnet" : "sepolia";
+export const GhostModeGateSepolia = process.env.NEXT_PUBLIC_GHOSTMODE_GATE_SEPOLIA ?? "0x0";
+export const GhostModeSellerSepolia = process.env.NEXT_PUBLIC_GHOSTMODE_SELLER_SEPOLIA ?? "0x0";
+export const GhostModeGateMainnet = process.env.NEXT_PUBLIC_GHOSTMODE_GATE_MAINNET ?? "0x0";
+export const GhostModeSellerMainnet = process.env.NEXT_PUBLIC_GHOSTMODE_SELLER_MAINNET ?? "0x0";
+
+export const GhostModeGate = GhostModeTargetNetwork === "mainnet"
+    ? GhostModeGateMainnet
+    : GhostModeGateSepolia;
+export const GhostModeSeller = GhostModeTargetNetwork === "mainnet"
+    ? GhostModeSellerMainnet
+    : GhostModeSellerSepolia;
+export const GhostModeChainId = GhostModeTargetNetwork === "mainnet" ? "SN_MAIN" : "SN_SEPOLIA";
+export const GhostModeProviderIndex = GhostModeTargetNetwork === "mainnet" ? 0 : 2;
+export const GhostModeExplorerBaseUrl = GhostModeTargetNetwork === "mainnet"
+    ? "https://voyager.online"
+    : "https://sepolia.voyager.online";
+export const GhostModePoolAddress = process.env.NEXT_PUBLIC_PRIVACY_POOL_ADDRESS ?? (GhostModeTargetNetwork === "mainnet"
+    ? "0x040337b1af3c663e86e333bab5a4b28da8d4652a15a69beee2b677776ffe812a"
+    : "0x0254a6b2997ef52e9f830ce1f543f6b29768295e8d17e2267d672c552cfe0d91");
+
 // Frontend RPC providers, indexed. The STRK20 privacy pool lives on Mainnet (0)
 // and Sepolia (2); index 1 is a spare public testnet endpoint. NEXT_PUBLIC_ALCHEMY_KEY
 // is your Alchemy key (see .env.example).
+const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
+const mainnetRpcUrl = process.env.NEXT_PUBLIC_STARKNET_MAINNET_RPC_URL
+    ?? (alchemyKey ? `https://starknet-mainnet.g.alchemy.com/v2/${alchemyKey}` : "https://api.cartridge.gg/x/starknet/mainnet");
+const sepoliaRpcUrl = process.env.NEXT_PUBLIC_STARKNET_SEPOLIA_RPC_URL
+    ?? (alchemyKey ? `https://starknet-sepolia.g.alchemy.com/v2/${alchemyKey}` : "https://api.cartridge.gg/x/starknet/sepolia");
+
 export const myFrontendProviders: ProviderInterface[] = [
-    new RpcProvider({ nodeUrl: "https://starknet-mainnet.g.alchemy.com/v2/" + process.env.NEXT_PUBLIC_ALCHEMY_KEY }),
+    new RpcProvider({ nodeUrl: mainnetRpcUrl }),
     new RpcProvider({ nodeUrl: "https://starknet-testnet.public.blastapi.io/rpc/v0_7" }),
-    new RpcProvider({ nodeUrl: "https://starknet-sepolia.g.alchemy.com/v2/" + process.env.NEXT_PUBLIC_ALCHEMY_KEY })];
+    new RpcProvider({ nodeUrl: sepoliaRpcUrl })];
 
 // ─── Example anonymizer (echo helper) ───────────────────────────────────────
 // DEMO CONTRACT: StrkInvokeHelper (cairo/src/lib.cairo) just round-trips STRK

@@ -1,24 +1,23 @@
 import type { Metadata } from 'next'
-import { Inter, Space_Mono } from 'next/font/google'
+import { IBM_Plex_Sans, Tomorrow } from 'next/font/google'
 import './globals.css'
 
-// Clean neutral grotesque for everything (matches the Uniswap reference); a mono
-// only for hex addresses / hashes.
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-})
-const spaceMono = Space_Mono({
+const plex = IBM_Plex_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
-  variable: '--font-mono-ui',
+  variable: '--font-plex',
+  display: 'swap',
+})
+const tomorrow = Tomorrow({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-tomorrow',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'Shielded STRK · WalletAccountV6',
-  description: 'Shield, unshield and privately move STRK on Starknet with WalletAccountV6',
+  title: 'GhostMode · Private payment adapters for AI agents',
+  description: 'Inspect an x402 payment, compile its STRK20 adapter, and execute the safer route through the user’s Starknet wallet.',
 }
 
 export default function RootLayout({
@@ -29,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceMono.variable}`}
+      className={`${plex.variable} ${tomorrow.variable}`}
       suppressHydrationWarning
     >
       <body>{children}</body>

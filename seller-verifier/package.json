@@ -1,0 +1,16 @@
+{
+  "name": "ghostmode-seller-verifier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env.local src/server.mjs",
+    "register": "node --env-file=.env.local src/register.mjs",
+    "generate:viewing-key": "node src/generate-viewing-key.mjs",
+    "check": "node --check src/privacy.mjs && node --check src/server.mjs && node --check src/register.mjs && node --check src/generate-viewing-key.mjs"
+  },
+  "dependencies": {
+    "@starkware-libs/starknet-privacy-sdk": "0.14.3-rc.5",
+    "starknet": "10.5.0"
+  }
+}

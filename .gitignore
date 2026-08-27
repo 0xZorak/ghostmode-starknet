@@ -19,7 +19,6 @@
 .DS_Store
 *.pem
 .yalc
-yarn.lock
 
 # debug
 npm-debug.log*
@@ -38,7 +37,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /scripts-ts-node/
-package-lock.json
+/.tools/
+/.secrets/
 A1priv/A1priv.ts
 /A1priv/
 

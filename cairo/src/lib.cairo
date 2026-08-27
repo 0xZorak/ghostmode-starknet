@@ -1,6 +1,8 @@
 use starknet::ContractAddress;
 
-// Must match privacy::objects::OpenNoteDeposit (positional Serde).
+// The pool deserializes the helper return value as this exact positional type.
+// ReceiptGate returns an empty span because the seller receives a normal encrypted
+// note from the transfer action in the same private pool transaction.
 #[derive(Serde, Copy, Drop, PartialEq, Debug)]
 pub struct OpenNoteDeposit {
     pub note_id: felt252,
@@ -9,91 +11,129 @@ pub struct OpenNoteDeposit {
 }
 
 #[starknet::interface]
-pub trait IErc20<TState> {
-    fn balance_of(self: @TState, account: ContractAddress) -> u256;
-    fn approve(ref self: TState, spender: ContractAddress, amount: u256) -> bool;
-}
-
-#[starknet::interface]
-pub trait IStrkInvokeHelper<TState> {
-    // Called by the privacy pool via selector!("privacy_invoke").
+pub trait IReceiptGate<TState> {
     fn privacy_invoke(
         ref self: TState,
-        token: ContractAddress, // STRK (literal felt in calldata)
-        pool_address: ContractAddress, // wallet placeholder: poolAddress
-        note_id: felt252 // wallet placeholder: openNoteIds[0]
+        pool_address: ContractAddress,
+        quote_id: felt252,
+        resource_commitment: felt252,
+        valid_until: u64,
+        authorization_r: felt252,
+        authorization_s: felt252,
     ) -> Span<OpenNoteDeposit>;
-    fn get_invoke_count(self: @TState) -> u64;
-    fn get_last_note_id(self: @TState) -> felt252;
+    fn is_consumed(self: @TState, quote_id: felt252) -> bool;
+    fn get_pool(self: @TState) -> ContractAddress;
+    fn get_seller_authority_key(self: @TState) -> felt252;
 }
 
 #[starknet::contract]
-mod StrkInvokeHelper {
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use starknet::{ContractAddress, get_caller_address, get_contract_address};
-    use super::{IErc20Dispatcher, IErc20DispatcherTrait, OpenNoteDeposit};
+mod ReceiptGate {
+    use core::num::traits::Zero;
+    use starknet::storage::{
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
+    };
+    use core::ecdsa::check_ecdsa_signature;
+    use core::poseidon::poseidon_hash_span;
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+    use super::OpenNoteDeposit;
 
     mod errors {
+        pub const ZERO_POOL: felt252 = 'ZERO_POOL';
         pub const BAD_POOL: felt252 = 'BAD_POOL';
-        pub const NO_INPUT: felt252 = 'NO_INPUT';
-        pub const AMOUNT_OVERFLOW: felt252 = 'AMOUNT_OVERFLOW';
+        pub const ZERO_QUOTE: felt252 = 'ZERO_QUOTE';
+        pub const ZERO_COMMITMENT: felt252 = 'ZERO_COMMITMENT';
+        pub const ZERO_AUTHORITY: felt252 = 'ZERO_AUTHORITY';
+        pub const BAD_SELLER_AUTH: felt252 = 'BAD_SELLER_AUTH';
+        pub const QUOTE_EXPIRED: felt252 = 'QUOTE_EXPIRED';
+        pub const QUOTE_REPLAY: felt252 = 'QUOTE_REPLAY';
     }
 
     #[storage]
     struct Storage {
-        invoke_count: u64,
-        last_note_id: felt252,
+        pool: ContractAddress,
+        seller_authority_key: felt252,
+        consumed: Map<felt252, bool>,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
-        Invoked: Invoked,
+        ReceiptAccepted: ReceiptAccepted,
     }
 
     #[derive(Drop, starknet::Event)]
-    struct Invoked {
+    struct ReceiptAccepted {
         #[key]
-        note_id: felt252,
-        amount: u128,
-        caller: ContractAddress,
+        quote_id: felt252,
+        resource_commitment: felt252,
+    }
+
+    #[constructor]
+    fn constructor(ref self: ContractState, pool: ContractAddress, seller_authority_key: felt252) {
+        assert(!pool.is_zero(), errors::ZERO_POOL);
+        assert(seller_authority_key != 0, errors::ZERO_AUTHORITY);
+        self.pool.write(pool);
+        self.seller_authority_key.write(seller_authority_key);
     }
 
     #[abi(embed_v0)]
-    impl HelperImpl of super::IStrkInvokeHelper<ContractState> {
+    impl ReceiptGateImpl of super::IReceiptGate<ContractState> {
         fn privacy_invoke(
             ref self: ContractState,
-            token: ContractAddress,
             pool_address: ContractAddress,
-            note_id: felt252,
+            quote_id: felt252,
+            resource_commitment: felt252,
+            valid_until: u64,
+            authorization_r: felt252,
+            authorization_s: felt252,
         ) -> Span<OpenNoteDeposit> {
-            // Demonstrates the poolAddress placeholder and validates it: it must be the caller.
-            let caller = get_caller_address();
-            assert(pool_address == caller, errors::BAD_POOL);
+            let configured_pool = self.pool.read();
+            assert(get_caller_address() == configured_pool, errors::BAD_POOL);
+            assert(pool_address == configured_pool, errors::BAD_POOL);
+            assert(quote_id != 0, errors::ZERO_QUOTE);
+            assert(resource_commitment != 0, errors::ZERO_COMMITMENT);
+            assert(get_block_timestamp() <= valid_until, errors::QUOTE_EXPIRED);
+            assert(!self.consumed.read(quote_id), errors::QUOTE_REPLAY);
 
-            let erc20 = IErc20Dispatcher { contract_address: token };
-            // The pool already sent the STRK here (phase order: withdraw < invoke).
-            let balance: u256 = erc20.balance_of(get_contract_address());
-            let amount: u128 = balance.try_into().expect(errors::AMOUNT_OVERFLOW);
-            assert(amount != 0, errors::NO_INPUT);
+            // The seller authorizes this opaque request without publishing the
+            // payment token, amount, recipient address, or buyer identity.
+            let authorization_hash = poseidon_hash_span(
+                array![
+                    get_contract_address().into(),
+                    quote_id,
+                    resource_commitment,
+                    valid_until.into(),
+                ]
+                    .span(),
+            );
+            assert(
+                check_ecdsa_signature(
+                    authorization_hash,
+                    self.seller_authority_key.read(),
+                    authorization_r,
+                    authorization_s,
+                ),
+                errors::BAD_SELLER_AUTH,
+            );
 
-            // Echo: allow the pool to pull everything back to fill the open note.
-            erc20.approve(pool_address, balance);
+            self.consumed.write(quote_id, true);
+            self.emit(ReceiptAccepted { quote_id, resource_commitment });
 
-            // Side effect — proves invoke runs arbitrary logic atomically.
-            self.invoke_count.write(self.invoke_count.read() + 1);
-            self.last_note_id.write(note_id);
-            self.emit(Invoked { note_id, amount, caller });
-
-            array![OpenNoteDeposit { note_id, token, amount }].span()
+            let deposits: Array<OpenNoteDeposit> = array![];
+            deposits.span()
         }
 
-        fn get_invoke_count(self: @ContractState) -> u64 {
-            self.invoke_count.read()
+        fn is_consumed(self: @ContractState, quote_id: felt252) -> bool {
+            self.consumed.read(quote_id)
         }
 
-        fn get_last_note_id(self: @ContractState) -> felt252 {
-            self.last_note_id.read()
+        fn get_pool(self: @ContractState) -> ContractAddress {
+            self.pool.read()
+        }
+
+        fn get_seller_authority_key(self: @ContractState) -> felt252 {
+            self.seller_authority_key.read()
         }
     }
 }
