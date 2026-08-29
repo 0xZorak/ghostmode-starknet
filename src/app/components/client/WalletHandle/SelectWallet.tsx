@@ -181,7 +181,6 @@ export default function SelectWallet({ variant = "ctaBig" }: { variant?: "nav" |
           onClick={() => setConnected(false)}
           title="Disconnect"
         >
-          <span className={styles.addrDot} />
           {shortAddr}
           <span className={styles.addrDisconnect}>Disconnect</span>
         </button>

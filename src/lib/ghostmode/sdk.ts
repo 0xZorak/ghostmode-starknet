@@ -11,7 +11,12 @@ export type GhostModeOptions = {
   fetcher?: typeof fetch;
 };
 
-/** Minimal, wallet-keyless SDK for AI agents and browser applications. */
+/**
+ * Minimal, wallet-keyless SDK for AI agents and browser applications.
+ *
+ * GhostMode delegates note discovery, viewing keys, proving, and transaction
+ * consent to a privacy-capable wallet. It never accepts those secrets itself.
+ */
 export class GhostMode {
   private readonly fetcher: typeof fetch;
 
@@ -19,6 +24,7 @@ export class GhostMode {
     this.fetcher = options.fetcher ?? fetch;
   }
 
+  /** Evaluates privacy support without preparing or submitting a transaction. */
   evaluate(intent: PrivacyIntent) {
     const expected = this.options.network === "mainnet" ? "starknet-mainnet" : "starknet-sepolia";
     if (intent.network !== expected) {
@@ -35,6 +41,10 @@ export class GhostMode {
     return evaluatePrivacy(intent);
   }
 
+  /**
+   * Validates, simulates, and submits a signed private-payment request.
+   * No public fallback is attempted if validation or private simulation fails.
+   */
   async pay(input: AgentPaymentRequestV1) {
     const request = assertPaymentRequest(input);
     const expectedChain = this.options.network === "mainnet" ? "SN_MAIN" : "SN_SEPOLIA";
@@ -61,10 +71,12 @@ export class GhostMode {
     return this.options.wallet.strk20InvokeTransaction(actions);
   }
 
+  /** Asks the GhostMode server to verify the public receipt and seller note. */
   async verify(requestId: string, transactionHash: string) {
     return this.request("/api/payment/verify", { method: "POST", body: JSON.stringify({ requestId, transactionHash }) });
   }
 
+  /** Reads public fulfillment state; it never returns private notes or keys. */
   async getPaymentStatus(requestId: string) {
     return this.request(`/api/payment/${encodeURIComponent(requestId)}`);
   }

@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { RpcProvider, constants, num } from "starknet";
 import { GhostModeGate, GhostModePoolAddress, GhostModeTargetNetwork } from "@/utils/constants";
+import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
 
 export const dynamic = "force-dynamic";
 
-const rpcUrl = GhostModeTargetNetwork === "mainnet"
-  ? "https://api.cartridge.gg/x/starknet/mainnet"
-  : "https://api.cartridge.gg/x/starknet/sepolia";
+const rpcUrl = ghostModeServerRpcUrl(GhostModeTargetNetwork);
 
 function configured(value: string) {
   try { return num.toBigInt(value) > 0n; } catch { return false; }

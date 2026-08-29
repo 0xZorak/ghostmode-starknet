@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ec, num, RpcProvider } from "starknet";
 import { GhostModeGate, GhostModeSeller, GhostModeTargetNetwork } from "@/utils/constants";
 import { quoteStoreMode } from "@/lib/ghostmode/server/quote-store";
+import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +22,7 @@ export async function GET() {
     try {
       const derivedKey = ec.starkCurve.getStarkKey(signerPrivateKey);
       const provider = new RpcProvider({
-        nodeUrl: GhostModeTargetNetwork === "mainnet"
-          ? process.env.GHOSTMODE_MAINNET_RPC_URL || "https://api.cartridge.gg/x/starknet/mainnet"
-          : process.env.GHOSTMODE_SEPOLIA_RPC_URL || "https://api.cartridge.gg/x/starknet/sepolia",
+        nodeUrl: ghostModeServerRpcUrl(GhostModeTargetNetwork),
       });
       const [onchainKey] = await provider.callContract({ contractAddress: GhostModeGate, entrypoint: "get_seller_authority_key" });
       receiptAuthorizationConfigured = num.toBigInt(derivedKey) === num.toBigInt(signerPublicKey)

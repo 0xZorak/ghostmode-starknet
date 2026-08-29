@@ -11,10 +11,12 @@ import type { CompatibilityInput, PaymentQuote } from "./types";
 export class GhostModeClient {
   constructor(private readonly wallet: WalletAccountV6) {}
 
+  /** Analyzes whether an action fits a reviewed STRK20 route. This never submits. */
   analyze(input: CompatibilityInput) {
     return analyzeCompatibility(input);
   }
 
+  /** Builds, but does not submit, the two-action private purchase transaction. */
   purchaseActions(quote: PaymentQuote): WALLET_API.STRK20_ACTION[] {
     return buildPrivatePurchaseActions(quote);
   }
@@ -31,14 +33,17 @@ export class GhostModeClient {
     return this.wallet.strk20Balances(tokens);
   }
 
+  /** Simulates a private action set through the connected wallet without submission. */
   simulate(actions: WALLET_API.STRK20_ACTION[]) {
     return this.wallet.strk20PrepareInvoke(actions, true);
   }
 
+  /** Requests wallet proof generation and submission for an already-reviewed action set. */
   submit(actions: WALLET_API.STRK20_ACTION[]) {
     return this.wallet.strk20InvokeTransaction(actions);
   }
 
+  /** Simulates first and submits only if simulation succeeds. */
   async executePurchase(quote: PaymentQuote) {
     const actions = this.purchaseActions(quote);
     await this.simulate(actions);

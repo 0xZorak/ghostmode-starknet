@@ -5,6 +5,7 @@ import {
   GhostModePoolAddress,
   GhostModeTargetNetwork,
 } from "@/utils/constants";
+import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +14,7 @@ const DEFAULT_LOOKBACK_BLOCKS = 20_000;
 const MAX_LOOKBACK_BLOCKS = 100_000;
 
 const recoveryRpc = new RpcProvider({
-  nodeUrl: GhostModeTargetNetwork === "mainnet"
-    ? "https://api.cartridge.gg/x/starknet/mainnet"
-    : "https://api.cartridge.gg/x/starknet/sepolia",
+  nodeUrl: ghostModeServerRpcUrl(GhostModeTargetNetwork),
 });
 
 export async function GET(request: NextRequest) {

@@ -2,7 +2,9 @@ import { account, provider, transfers } from "./privacy.mjs";
 
 const provingBlockId = (await provider.getBlockNumber()) - 10;
 const { callAndProof } = await transfers.build().register().execute({ provingBlockId });
-const proofFacts = callAndProof.proofFacts ?? [];
+// Omit proof fields entirely when the prover returns no facts. Passing empty
+// arrays serializes an invalid v3 transaction in starknet.js.
+const proofFacts = callAndProof.proof.proofFacts ?? [];
 const proofDetails = proofFacts.length
   ? { proofFacts, proof: callAndProof.proof.data }
   : {};

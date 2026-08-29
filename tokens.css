@@ -1,29 +1,29 @@
-/* Hallmark · tokens · GhostMode Blacksite */
+/* GhostMode editorial system · warm paper + privacy olive */
 :root {
-  --color-paper: oklch(11.5% 0.009 150);
-  --color-paper-2: oklch(14.5% 0.011 150);
-  --color-paper-3: oklch(18.5% 0.013 150);
-  --color-rule: oklch(27% 0.013 150);
-  --color-rule-2: oklch(36% 0.018 150);
-  --color-neutral: oklch(58% 0.014 150);
-  --color-muted: oklch(70% 0.011 150);
-  --color-ink: oklch(94% 0.009 150);
-  --color-accent: oklch(78% 0.17 145);
-  --color-accent-ink: oklch(13% 0.022 150);
-  --color-focus: oklch(84% 0.19 145);
-  --color-error: oklch(70% 0.17 28);
-  --color-error-surface: oklch(20% 0.035 28);
-  --color-warning: oklch(82% 0.14 82);
-  --color-warning-surface: oklch(20% 0.03 82);
-  --color-success-surface: oklch(20% 0.035 145);
-  --color-overlay: oklch(7% 0.009 150 / 0.88);
-  --color-paper-translucent: oklch(11.5% 0.009 150 / 0.94);
-  --color-accent-ghost: oklch(78% 0.17 145 / 0.1);
-  --color-error-rule: oklch(70% 0.17 28 / 0.35);
+  --color-paper: #f1efe7;
+  --color-paper-2: #f7f5ee;
+  --color-paper-3: #e8e5da;
+  --color-rule: rgba(17, 17, 14, 0.14);
+  --color-rule-2: rgba(17, 17, 14, 0.58);
+  --color-neutral: #77746b;
+  --color-muted: #5f5d56;
+  --color-ink: #11110e;
+  --color-accent: #647c16;
+  --color-accent-ink: #f7f5ee;
+  --color-focus: #52670e;
+  --color-error: #a43d2f;
+  --color-error-surface: #f5e3de;
+  --color-warning: #8a6212;
+  --color-warning-surface: #f3ead5;
+  --color-success-surface: #e6ecd1;
+  --color-overlay: rgba(17, 17, 14, 0.72);
+  --color-paper-translucent: rgba(241, 239, 231, 0.94);
+  --color-accent-ghost: rgba(100, 124, 22, 0.12);
+  --color-error-rule: rgba(164, 61, 47, 0.36);
 
-  --font-display: var(--font-tomorrow), ui-sans-serif, sans-serif;
-  --font-body: var(--font-plex), ui-sans-serif, sans-serif;
-  --font-mono: var(--font-body);
+  --font-display: var(--font-geist), ui-sans-serif, sans-serif;
+  --font-body: var(--font-geist), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --space-3xs: 0.125rem;
   --space-2xs: 0.25rem;
@@ -45,12 +45,14 @@
   --text-2xl: 2.441rem;
   --text-display: clamp(3rem, 6.4vw, 5.5rem);
 
+  --spring-snappy: linear(0, .009, .035 2.1%, .141 4.4%, .723 12.9%, .938 16.7%, 1.017 19.4%, 1.067 22.5%, 1.089 26%, 1.079 30.3%, 1.049 36%, 1.024 42.6%, 1.011 50.3%, 1.004 59.2%, 1.001 69.3%, 1);
+  --spring-smooth: linear(0, .004, .016 2.3%, .063 4.7%, .141 7.2%, .25 9.9%, .601 16.5%, .815 21%, .929 25.2%, .987 29%, 1.025 33.5%, 1.042 38%, 1.04 43.5%, 1.027 50%, 1.013 57.5%, 1.005 67%, 1.001 79%, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-micro: 120ms;
-  --dur-short: 220ms;
-  --dur-long: 420ms;
+  --ease-in: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-micro: 180ms;
+  --dur-short: 320ms;
+  --dur-long: 620ms;
 
   --rule-hair: 1px;
   --radius-sm: 0.375rem;

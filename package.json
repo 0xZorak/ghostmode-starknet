@@ -1,6 +1,8 @@
 {
-  "name": "wallet_account_for_starknet",
+  "name": "ghostmode-starknet",
   "version": "0.1.0",
+  "description": "Privacy-aware execution and private payment infrastructure for AI agents on Starknet.",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
@@ -8,6 +10,7 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run test:e2e && npm --prefix seller-verifier run check && npm run build",
     "test": "vitest run",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "demo:check": "node scripts/demo-check.mjs",

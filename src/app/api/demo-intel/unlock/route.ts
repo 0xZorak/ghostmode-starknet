@@ -8,13 +8,12 @@ import {
 } from "@/lib/ghostmode/server/quote-store";
 import { verifyGateReceipt, verifySellerNote } from "@/lib/ghostmode/server/payment-verification";
 import { GhostModeTargetNetwork } from "@/utils/constants";
+import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
 
 export const dynamic = "force-dynamic";
 
 const provider = new RpcProvider({
-  nodeUrl: GhostModeTargetNetwork === "mainnet"
-    ? "https://api.cartridge.gg/x/starknet/mainnet"
-    : "https://api.cartridge.gg/x/starknet/sepolia",
+  nodeUrl: ghostModeServerRpcUrl(GhostModeTargetNetwork),
 });
 
 export async function POST(request: NextRequest) {

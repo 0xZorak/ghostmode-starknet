@@ -706,9 +706,9 @@ export default function GhostWorkbench() {
           <span className={styles.commandText}>Command</span>
           <kbd>⌘ K</kbd>
         </button>
-        <div className={styles.navTelemetry} aria-label="Network telemetry">
-          <span><i data-status="online" />Pool online</span>
-          <span><i data-status={readiness?.readyForPrivatePurchaseTesting ? "online" : "pending"} />{GhostModeChainId}</span>
+        <div className={styles.navTelemetry} aria-label="Current network">
+          <span>Network</span>
+          <strong>{GhostModeChainId}</strong>
         </div>
         <SelectWallet variant="nav" />
       </header>
@@ -731,24 +731,24 @@ export default function GhostWorkbench() {
       <main id="top">
         <section className={styles.intro} aria-labelledby="page-title">
           <div className={styles.introCopy}>
-            <p className={styles.statusLine}><span className={styles.statusDot} /> Privacy execution layer · {networkLabel}</p>
-            <h1 id="page-title">Private execution for autonomous agents.</h1>
-            <p className={styles.lede}>GhostMode evaluates what an agent action can truly hide, selects a reviewed STRK20 route, and refuses private execution when its guarantees cannot be met.</p>
+            <p className={styles.statusLine}>Privacy infrastructure for agents on {networkLabel}</p>
+            <h1 id="page-title">Private execution,<br /><span className={styles.heroAccent}>without the exposure.</span></h1>
+            <p className={styles.lede}>GhostMode checks what an agent action would reveal, routes it through the strongest available Starknet privacy path, and refuses false privacy guarantees.</p>
             {GhostModeTargetNetwork === "mainnet" ? <p className={`${styles.receiptBar} ${styles.receipt_error}`}><strong>MAINNET — REAL FUNDS</strong> Every payment requires explicit confirmation. Fixed-amount shielding is disabled.</p> : null}
             <div className={styles.heroActions}>
-              <button className={styles.heroPrimary} onClick={openWorkbench}>Launch Agent Console <span aria-hidden="true">↗</span></button>
-              <a className={styles.heroSecondary} href="#pipeline">View Execution Flow <span aria-hidden="true">↓</span></a>
+              <button className={styles.heroPrimary} onClick={openWorkbench}>Try GhostMode <span aria-hidden="true">↗</span></button>
+              <a className={styles.heroSecondary} href="#problem">See how it works</a>
             </div>
             <dl className={styles.heroTelemetry}>
-              <div><dt>Agent</dt><dd>GM-01 / ARMED</dd></div>
-              <div><dt>Mode</dt><dd>SHIELDED</dd></div>
-              <div><dt>Proof</dt><dd>{readiness?.readyForPrivatePurchaseTesting ? "AVAILABLE" : "STANDBY"}</dd></div>
+              <div><dt>Route</dt><dd>STRK20</dd></div>
+              <div><dt>Network</dt><dd>{GhostModeChainId}</dd></div>
+              <div><dt>Privacy</dt><dd>{readiness?.readyForPrivatePurchaseTesting ? "Available" : "Setup required"}</dd></div>
             </dl>
           </div>
           <div id="pipeline" className={styles.routePreview} aria-label="GhostMode private execution pipeline">
             <div className={styles.routeConsoleHead}>
-              <span>LIVE ROUTE / GM-01</span>
-              <span><i /> LISTENING</span>
+              <span>PRIVATE ROUTE</span>
+              <span>STRK20</span>
             </div>
             <div className={styles.routeStageRail}>
               <span>INTENT</span><b>→</b><span>SHIELD</span><b>→</b><span>PROVE</span><b>→</b><span>EXECUTE</span><b>→</b><span>VERIFY</span>
@@ -763,10 +763,28 @@ export default function GhostWorkbench() {
               <span className={styles.routeVerdict}>relationship concealed</span>
             </div>
             <div className={styles.routeConsoleFoot}>
-              <span>NULLIFIER / PRIVATE</span>
-              <span>SETTLEMENT / STARKNET</span>
-              <span>POLICY / COMPLIANT</span>
+              <span>GHOSTMODE RECEIPT</span>
+              <span>Request #94281</span>
+              <span>State: verified</span>
             </div>
+          </div>
+        </section>
+
+        <section id="problem" className={styles.problemSection} aria-labelledby="problem-title">
+          <div className={styles.problemCopy}>
+            <span className={styles.sectionKicker}>The problem</span>
+            <h2 id="problem-title">Public wallets<br />tell stories.</h2>
+          </div>
+          <div className={styles.problemDetails}>
+            <p>Who your agent pays. What it buys. How much it spends. When it moves.</p>
+            <p>That information can expose strategy before the agent finishes the job.</p>
+          </div>
+          <div className={styles.privacyWindow} aria-label="Privacy window example">
+            <span>PRIVATE WINDOW</span>
+            <div><b>Sender</b><i aria-hidden="true" /></div>
+            <div><b>Amount</b><i aria-hidden="true" /></div>
+            <div><b>Recipient</b><i aria-hidden="true" /></div>
+            <p>Outside the window: timing remains observable.</p>
           </div>
         </section>
 
@@ -933,7 +951,6 @@ export default function GhostWorkbench() {
             </div>
 
             <div className={`${styles.receiptBar} ${styles[`receipt_${receipt.state}`]}`} role="status" aria-live="polite">
-              <span className={styles.receiptSignal} aria-hidden="true" />
               <div><strong>{receipt.title}</strong>{receipt.detail ? <p>{receipt.detail}</p> : null}</div>
               {receipt.hash ? <a href={`${GhostModeExplorerBaseUrl}/tx/${receipt.hash}`} target="_blank" rel="noreferrer">{shorten(receipt.hash)} ↗</a> : receipt.helpHref ? <a href={receipt.helpHref} target="_blank" rel="noreferrer">{receipt.helpLabel ?? "Open help ↗"}</a> : null}
             </div>
@@ -1031,6 +1048,48 @@ export default function GhostWorkbench() {
             <div><span>STILL PUBLIC</span><p>Shield edge · timing · nullifier · opaque receipt commitment</p></div>
             <div><span>SELLER CAN SEE</span><p>HTTP request · requested resource · delivery timing · network metadata</p></div>
           </div>
+        </section>
+
+        <section className={styles.flowSection} aria-labelledby="flow-title">
+          <div>
+            <span className={styles.sectionKicker}>How it works</span>
+            <h2 id="flow-title">One honest route<br />from intent to proof.</h2>
+          </div>
+          <ol className={styles.flowList}>
+            <li><span>01</span><strong>Agent request</strong><p>The agent states what it needs and which privacy properties are required.</p></li>
+            <li><span>02</span><strong>Privacy check</strong><p>GhostMode shows what can be hidden and what will remain observable.</p></li>
+            <li><span>03</span><strong>STRK20 transfer</strong><p>The wallet proves and submits the encrypted payment route.</p></li>
+            <li><span>04</span><strong>Seller verifies</strong><p>The receipt and private note are checked without exposing the buyer.</p></li>
+            <li><span>05</span><strong>Resource unlocked</strong><p>The agent receives what it paid for only after verification succeeds.</p></li>
+          </ol>
+        </section>
+
+        <section className={styles.sdkSection} aria-labelledby="sdk-title">
+          <div>
+            <span className={styles.sectionKicker}>Agent SDK</span>
+            <h2 id="sdk-title">Four lines of code.<br />No privacy theater.</h2>
+          </div>
+          <pre><code>{`const ghost = new GhostMode({
+  network: "sepolia",
+  wallet
+});
+
+const result = await ghost.pay(request);`}</code></pre>
+        </section>
+
+        <section className={styles.docsSection} aria-labelledby="docs-title">
+          <div>
+            <span className={styles.sectionKicker}>Documentation</span>
+            <h2 id="docs-title">Build from the<br />privacy boundary.</h2>
+          </div>
+          <nav aria-label="GhostMode documentation">
+            <a href="#workbench"><span>01</span>Quickstart<b aria-hidden="true">↓</b></a>
+            <a href="#visibility"><span>02</span>Privacy model<b aria-hidden="true">↓</b></a>
+            <a href="https://strk20.starknet.io/docs" target="_blank" rel="noreferrer"><span>03</span>STRK20 integration<b aria-hidden="true">↗</b></a>
+            <a href="#adapter"><span>04</span>Agent SDK<b aria-hidden="true">↓</b></a>
+            <a href="#workbench"><span>05</span>Receipt contract<b aria-hidden="true">↓</b></a>
+            <a href="#visibility"><span>06</span>Threat model<b aria-hidden="true">↓</b></a>
+          </nav>
         </section>
       </main>
 

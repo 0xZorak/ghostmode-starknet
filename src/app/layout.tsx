@@ -1,17 +1,15 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Sans, Tomorrow } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
-const plex = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-plex',
+const geist = localFont({
+  src: '../../node_modules/next/dist/next-devtools/server/font/geist-latin.woff2',
+  variable: '--font-geist',
   display: 'swap',
 })
-const tomorrow = Tomorrow({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-tomorrow',
+const geistMono = localFont({
+  src: '../../node_modules/next/dist/next-devtools/server/font/geist-mono-latin.woff2',
+  variable: '--font-geist-mono',
   display: 'swap',
 })
 
@@ -28,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plex.variable} ${tomorrow.variable}`}
+      className={`${geist.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body>{children}</body>
