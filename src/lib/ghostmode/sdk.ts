@@ -3,6 +3,7 @@ import { evaluatePrivacy } from "./privacy-engine";
 import { assertPaymentRequest } from "./payment-request";
 import type { AgentPaymentRequestV1, PaymentQuote, PrivacyIntent } from "./types";
 import { buildPrivatePurchaseActions } from "./wallet-actions";
+import { computeQuoteTermsCommitment } from "./quote-integrity";
 
 export type GhostModeOptions = {
   network: "sepolia" | "mainnet";
@@ -52,10 +53,15 @@ export class GhostMode {
     if (!this.options.wallet) throw new Error("WALLET_NOT_PRIVACY_CAPABLE: attach a WalletAccountV6 before calling pay().");
 
     const quote: PaymentQuote = {
-      version: "ghostmode-x402/0.1",
+      version: "ghostmode-http402/0.2",
       network: this.options.network,
       chainId: request.chainId,
       quoteId: request.requestId,
+      nonce: request.nonce,
+      termsCommitment: computeQuoteTermsCommitment({
+        chainId: request.chainId, seller: request.seller, gate: request.receiptGate,
+        token: request.token, amount: request.amount, resourceCommitment: request.resourceCommitment, nonce: request.nonce,
+      }),
       resourceCommitment: request.resourceCommitment,
       seller: request.seller,
       gate: request.receiptGate,

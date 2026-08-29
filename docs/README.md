@@ -24,13 +24,16 @@ Understand privacy
 
 Deploy
 ├── Configuration
+├── Deployment
+├── Key management
 ├── Sepolia
 └── Mainnet
 
 Maintain
 ├── Testing
 ├── Compatibility
-└── Troubleshooting
+├── Troubleshooting
+└── Internal security review
 ```
 
 ## Start here
@@ -58,10 +61,13 @@ Maintain
 ## Deploy and maintain
 
 - [Configuration](configuration.md): every environment variable and secret boundary.
+- [Deployment](deployment.md): app, database, verifier container, verification, and rollback.
+- [Key management](key-management.md): custody, compromise impact, and rotation for each key.
 - [Sepolia](sepolia.md): build, deploy, verify, and manually exercise the testnet flow.
 - [Mainnet](mainnet.md): guarded read-only checks and real-funds deployment boundary.
 - [Testing](testing.md): test layers, commands, verified results, and missing live E2E coverage.
 - [Compatibility](compatibility.md): tested versions and route support.
 - [Troubleshooting](troubleshooting.md): symptom-first recovery and error catalogue.
+- [Internal Security Review](internal-security-review.md): implemented controls, verified evidence, and open risks; not an independent audit.
 
 Project policies: [contributing](../CONTRIBUTING.md), [security reporting](../SECURITY.md), [changelog](../CHANGELOG.md), and [license](../LICENSE).

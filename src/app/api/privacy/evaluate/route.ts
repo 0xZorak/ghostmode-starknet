@@ -1,36 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { evaluatePrivacy } from "@/lib/ghostmode/privacy-engine";
 import { calculatePrivacyScore } from "@/lib/ghostmode/privacy-score";
-import type { PrivacyIntent } from "@/lib/ghostmode/types";
+import { privacyIntentSchema } from "@/lib/ghostmode/server/validation";
+import { checkRateLimit } from "@/lib/ghostmode/server/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-function isBoolean(value: unknown): value is boolean {
-  return typeof value === "boolean";
-}
-
-function parseIntent(value: unknown): PrivacyIntent | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const input = value as Record<string, unknown>;
-  const requirements = input.requirements as Record<string, unknown> | undefined;
-  if (!["payment", "transfer", "contract-invoke", "swap"].includes(String(input.action))
-    || !["starknet-sepolia", "starknet-mainnet"].includes(String(input.network))
-    || typeof input.token !== "string"
-    || typeof input.amount !== "string"
-    || !requirements
-    || ![requirements.hideSender, requirements.hideRecipient, requirements.hideAmount, requirements.hideToken].every(isBoolean)) return null;
-  return input as unknown as PrivacyIntent;
-}
-
 export async function POST(request: NextRequest) {
+  const rate = checkRateLimit(request, "privacy-evaluate", 60);
+  if (!rate.allowed) return NextResponse.json({ error: "RATE_LIMITED", retryAfterSeconds: rate.retryAfterSeconds }, { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } });
   let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "INVALID_JSON" }, { status: 400 });
   }
-  const intent = parseIntent(body);
-  if (!intent) return NextResponse.json({ error: "INVALID_PRIVACY_INTENT" }, { status: 400 });
+  const parsed = privacyIntentSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "INVALID_PRIVACY_INTENT", issues: parsed.error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) }, { status: 400 });
+  const intent = parsed.data;
   const evaluation = evaluatePrivacy(intent);
   return NextResponse.json({ evaluation, score: calculatePrivacyScore(evaluation) }, {
     status: evaluation.supported ? 200 : 422,

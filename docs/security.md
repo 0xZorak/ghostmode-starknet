@@ -51,13 +51,13 @@ Resource release requires a successful exact gate event and one unambiguous sell
 
 ## Replay and concurrency
 
-Onchain replay is protected by `consumed[quote_id]`. The root process uses `pending → submitted → released` state and rejects competing hashes. This state is not durable or cross-process; multi-replica production requires transactional storage with a unique quote ID and compare-and-set release.
+Onchain replay is protected by `consumed[quote_id]`. The root server uses `pending → submitted → released` state, transactional Postgres row locks, and a unique transaction-hash constraint to reject competing claims and cross-quote transaction reuse. Development/test may use a clearly reported process-memory fallback; production fails closed without `DATABASE_URL`. A real multi-replica database exercise is still required before production approval.
 
 ## Server trust
 
 A compromised root server can expose stored resources/quotes, issue policy responses, and—if it has the quote key—authorize requests. It cannot decrypt buyer notes without wallet material.
 
-A compromised seller verifier is higher impact because the current implementation has seller account and viewing keys. Isolate it from the public frontend and never return note contents.
+A compromised seller verifier is higher impact because the current implementation has seller account and viewing keys. Isolate it from the public frontend and never return note contents. Exact matching uses note IDs emitted by the supplied pool transaction plus seller decryption and amount; ambiguous matches fail closed.
 
 ## Logging
 
@@ -65,12 +65,12 @@ Allowed: opaque quote ID, transaction hash, network, coarse status, sanitized er
 
 ## Dependency and deployment controls
 
-Versions are pinned in the root project and seller package. `package-lock.json` covers the root app; the seller service currently has no committed lockfile and should gain one before production. Mainnet deployment is blocked unless `CONFIRM_MAINNET_DEPLOYMENT=true`; payment still requires explicit wallet confirmation.
+Versions are pinned in the root project and seller package. `package-lock.json` covers the root app; the seller service cannot gain a lockfile until GitHub Packages access is authorized and must not be deployed without one. CI runs lint, types, unit/integration tests, a production build, and Cairo tests. Mainnet deployment is blocked unless `CONFIRM_MAINNET_DEPLOYMENT=true`; payment still requires explicit wallet confirmation.
 
 ## Security checklist before production
 
 - Independent Cairo and application security review
-- Durable transactional quote/release store
+- Live Postgres migration, restart, backup, and concurrency exercise
 - Published incident contact and private reporting enabled
 - Seller service secret manager, isolation, rotation, and audit logs
 - Pinned/verified RPC, proving, discovery, pool, gate, and authority configuration

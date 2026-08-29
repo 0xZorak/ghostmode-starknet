@@ -129,11 +129,12 @@ export default function SelectWallet({ variant = "ctaBig" }: { variant?: "nav" |
   const shortAddr = address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "";
 
   const picker = pickerOpen ? (
-    <div className={styles.modalOverlay} onClick={() => !connecting && setPickerOpen(false)}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Connect a Starknet wallet">
         <div className={styles.modalHead}>
           <span className={styles.modalTitle}>Connect a wallet</span>
           <button
+            type="button"
             className={styles.modalClose}
             onClick={() => setPickerOpen(false)}
             aria-label="Close"
@@ -147,6 +148,7 @@ export default function SelectWallet({ variant = "ctaBig" }: { variant?: "nav" |
           <div className={styles.walletList}>
             {pickable.map((w) => (
               <button
+                type="button"
                 key={w.name}
                 className={styles.walletRow}
                 onClick={() => selectWallet(w)}
@@ -177,6 +179,7 @@ export default function SelectWallet({ variant = "ctaBig" }: { variant?: "nav" |
     if (isConnected && address) {
       return (
         <button
+          type="button"
           className={styles.addrPill}
           onClick={() => setConnected(false)}
           title="Disconnect"
@@ -188,7 +191,7 @@ export default function SelectWallet({ variant = "ctaBig" }: { variant?: "nav" |
     }
     return (
       <>
-        <button className={styles.connectPill} onClick={openPicker}>
+        <button type="button" className={styles.connectPill} onClick={openPicker}>
           Connect
         </button>
         {picker}
@@ -200,7 +203,7 @@ export default function SelectWallet({ variant = "ctaBig" }: { variant?: "nav" |
   // wallet is connected.
   return (
     <>
-      <button className={styles.btnCta} onClick={openPicker}>
+      <button type="button" className={styles.btnCta} onClick={openPicker}>
         Connect a Wallet
       </button>
       {picker}

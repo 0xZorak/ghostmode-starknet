@@ -1,6 +1,7 @@
 import type { WALLET_API } from "@starknet-io/types-js";
 import { num } from "starknet";
 import type { PaymentQuote } from "./types";
+import { assertQuoteIntegrity } from "./quote-integrity";
 
 const FELT_ZERO = 0n;
 
@@ -23,6 +24,7 @@ export function buildPrivateTransferActions(token: string, amount: bigint, recip
 export function buildPrivatePurchaseActions(
   quote: PaymentQuote,
 ): WALLET_API.STRK20_ACTION[] {
+  assertQuoteIntegrity(quote);
   const expectedChainId = quote.network === "mainnet" ? "SN_MAIN" : "SN_SEPOLIA";
   if (quote.chainId !== expectedChainId) throw new Error("Quote network metadata is inconsistent.");
   const seller = requiredFelt(quote.seller, "Seller address");

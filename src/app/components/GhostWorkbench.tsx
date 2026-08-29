@@ -18,6 +18,7 @@ import {
   myFrontendProviders,
 } from "@/utils/constants";
 import styles from "../uni.module.css";
+import { assertWalletSession } from "@/lib/ghostmode/wallet-session";
 
 type RunState = "idle" | "loading" | "success" | "error";
 
@@ -61,7 +62,6 @@ type Readiness = {
 };
 
 const ONE_STRK = 10n ** 18n;
-const SHIELD_AND_DISPLAYED_FEE = 3n * ONE_STRK;
 const SEPOLIA_FAUCET_URL = "https://starknet-faucet.vercel.app/";
 const RECEIPT_ACCEPTED_EVENT_SELECTOR = hash.getSelectorFromName("ReceiptAccepted");
 const TIMEOUT_RECOVERY_ATTEMPTS = 60;
@@ -124,10 +124,21 @@ export default function GhostWorkbench() {
   const chain = useStoreWallet((state) => state.chain);
   const wallet = useStoreWallet((state) => state.StarknetWalletObject);
   const walletApiVersions = useStoreWallet((state) => state.walletApiList);
+  const previousAddress = useRef("");
 
   const [endpoint, setEndpoint] = useState("/api/demo-intel");
   const [quote, setQuote] = useState<PaymentQuote | null>(null);
   const [plan, setPlan] = useState<PrivacyPlan | null>(null);
+
+  useEffect(() => {
+    if (previousAddress.current && address && previousAddress.current !== address) {
+      setQuote(null);
+      setPlan(null);
+      setManifest(null);
+      setReceipt({ state: "error", title: "ACCOUNT_CHANGED", detail: "The connected account changed. The pending quote was invalidated; inspect a new quote before paying." });
+    }
+    previousAddress.current = address;
+  }, [address]);
   const [manifest, setManifest] = useState<AdapterManifest | null>(null);
   const [compatibilityInput, setCompatibilityInput] = useState<CompatibilityInput>({
     name: "Private lending deposit",
@@ -179,6 +190,8 @@ export default function GhostWorkbench() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Registration is account-scoped, so a wallet or chain change must invalidate it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: address and chain intentionally trigger invalidation
   useEffect(() => {
     setRegistration("unknown");
   }, [address, chain]);
@@ -260,6 +273,8 @@ export default function GhostWorkbench() {
     }
   };
 
+  // fetchChainEvidence is stateless; the account and network own this lifecycle.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: adding the local helper would recreate the polling lifecycle every render
   useEffect(() => {
     let active = true;
     if (!connected || !address || !isExpectedNetwork) {
@@ -312,6 +327,19 @@ export default function GhostWorkbench() {
         title: "Quote inspection failed",
         detail: error instanceof Error ? error.message : String(error),
       });
+    }
+  };
+
+  const assertCurrentWallet = async () => {
+    try {
+      return await assertWalletSession(wallet, address, GhostModeChainId);
+    } catch (error) {
+      if (errorText(error).includes("ACCOUNT_CHANGED")) {
+        setQuote(null);
+        setPlan(null);
+        setManifest(null);
+      }
+      throw error;
     }
   };
 
@@ -454,8 +482,19 @@ export default function GhostWorkbench() {
       });
       return;
     }
+    if (publicStrkBalance !== null && publicStrkBalance < ONE_STRK) {
+      setReceipt({
+        state: "error",
+        title: "INSUFFICIENT_STRK",
+        detail: `Connected account ${address} has ${formatStrk(publicStrkBalance.toString())} public STRK. Shielding needs 1 STRK plus the wallet's current fee estimate. No transaction was submitted.`,
+        helpHref: SEPOLIA_FAUCET_URL,
+        helpLabel: "Open Sepolia faucet ↗",
+      });
+      return;
+    }
     let submissionBlock: number | null = null;
     try {
+      await assertCurrentWallet();
       const provider = myFrontendProviders[GhostModeProviderIndex];
       submissionBlock = await provider.getBlockNumber().catch(() => null);
       if (submissionBlock !== null) {
@@ -511,11 +550,11 @@ export default function GhostWorkbench() {
         });
       } else if (detail.toLowerCase().includes("insufficient")) {
         clearPendingShield();
-        if (publicStrkBalance !== null && publicStrkBalance >= SHIELD_AND_DISPLAYED_FEE) {
+        if (publicStrkBalance !== null && publicStrkBalance >= ONE_STRK) {
           setReceipt({
             state: "error",
             title: "Wallet balance snapshot disagrees with Sepolia",
-            detail: `The public RPC sees ${formatStrk(publicStrkBalance.toString())} STRK, enough for this request. Cancel the wallet prompt, switch the wallet away from Sepolia and back, reload GhostMode, reconnect the same account, then retry. If it persists, test one shield from the wallet's native Privacy screen to isolate a wallet-side issue.`,
+            detail: `The public RPC sees ${formatStrk(publicStrkBalance.toString())} STRK at wallet account ${address}. The wallet may be reserving a larger network fee or using a different account snapshot. Cancel, verify the full address and fee estimate in the wallet, switch networks away and back, then reconnect before retrying.`,
             helpHref: `${GhostModeExplorerBaseUrl}/contract/${address}`,
             helpLabel: "Verify account on Voyager ↗",
           });
@@ -523,7 +562,7 @@ export default function GhostWorkbench() {
           setReceipt({
             state: "error",
             title: "More public Sepolia STRK is required",
-            detail: `Shielding 1 STRK also requires the wallet's network-fee allowance. Your screenshot reserves up to 2 STRK for fees, so fund this account with more than 3 STRK and retry. The unused fee allowance is not charged.`,
+            detail: `Wallet account ${address} needs the 1 STRK deposit plus the network fee displayed by the wallet. Fund this exact Sepolia address, refresh the public balance, and retry. No transaction was submitted.`,
             helpHref: SEPOLIA_FAUCET_URL,
             helpLabel: "Open Sepolia faucet ↗",
           });
@@ -582,6 +621,7 @@ export default function GhostWorkbench() {
 
     let submissionBlock: number | null = null;
     try {
+      await assertCurrentWallet();
       const actions = ghostMode.purchaseActions(quote);
       setReceipt({ state: "loading", title: "Simulating the private purchase", detail: "The wallet will prove and simulate the atomic route before submission." });
       await ghostMode.simulate(actions);
@@ -626,6 +666,7 @@ export default function GhostWorkbench() {
       return;
     }
     try {
+      await assertCurrentWallet();
       setReceipt({ state: "loading", title: "Reading encrypted notes" });
       const balances = await ghostMode.balances();
       const value = (balances as { value?: unknown }).value ?? balances;
@@ -701,12 +742,12 @@ export default function GhostWorkbench() {
           <a href="#adapter">Build</a>
           <a href="https://strk20.starknet.io/docs" target="_blank" rel="noreferrer">Docs ↗</a>
         </nav>
-        <button className={styles.commandPill} onClick={() => dialogRef.current?.showModal()} aria-label="Open action menu">
+        <button type="button" className={styles.commandPill} onClick={() => dialogRef.current?.showModal()} aria-label="Open action menu">
           <span aria-hidden="true">⌕</span>
           <span className={styles.commandText}>Command</span>
           <kbd>⌘ K</kbd>
         </button>
-        <div className={styles.navTelemetry} aria-label="Current network">
+        <div className={styles.navTelemetry}>
           <span>Network</span>
           <strong>{GhostModeChainId}</strong>
         </div>
@@ -715,15 +756,15 @@ export default function GhostWorkbench() {
 
       <dialog ref={dialogRef} className={styles.commandDialog} onClick={(event) => {
         if (event.target === dialogRef.current) dialogRef.current?.close();
-      }}>
+      }} onKeyDown={(event) => { if (event.key === "Escape") dialogRef.current?.close(); }}>
         <div className={styles.commandHead}>
           <span>Run GhostMode</span>
-          <button className={styles.iconButton} onClick={() => dialogRef.current?.close()} aria-label="Close action menu">×</button>
+          <button type="button" className={styles.iconButton} onClick={() => dialogRef.current?.close()} aria-label="Close action menu">×</button>
         </div>
-        <button className={styles.commandAction} onClick={openWorkbench}>
+        <button type="button" className={styles.commandAction} onClick={openWorkbench}>
           <span>Inspect private intelligence purchase</span><span aria-hidden="true">↵</span>
         </button>
-        <a className={styles.commandAction} href="#visibility" onClick={() => dialogRef.current?.close()}>
+        <a className={styles.commandAction} href="#visibility">
           <span>Read the threat model</span><span aria-hidden="true">↗</span>
         </a>
       </dialog>
@@ -736,7 +777,7 @@ export default function GhostWorkbench() {
             <p className={styles.lede}>GhostMode checks what an agent action would reveal, routes it through the strongest available Starknet privacy path, and refuses false privacy guarantees.</p>
             {GhostModeTargetNetwork === "mainnet" ? <p className={`${styles.receiptBar} ${styles.receipt_error}`}><strong>MAINNET — REAL FUNDS</strong> Every payment requires explicit confirmation. Fixed-amount shielding is disabled.</p> : null}
             <div className={styles.heroActions}>
-              <button className={styles.heroPrimary} onClick={openWorkbench}>Try GhostMode <span aria-hidden="true">↗</span></button>
+              <button type="button" className={styles.heroPrimary} onClick={openWorkbench}>Try GhostMode <span aria-hidden="true">↗</span></button>
               <a className={styles.heroSecondary} href="#problem">See how it works</a>
             </div>
             <dl className={styles.heroTelemetry}>
@@ -745,7 +786,7 @@ export default function GhostWorkbench() {
               <div><dt>Privacy</dt><dd>{readiness?.readyForPrivatePurchaseTesting ? "Available" : "Setup required"}</dd></div>
             </dl>
           </div>
-          <div id="pipeline" className={styles.routePreview} aria-label="GhostMode private execution pipeline">
+          <section id="pipeline" className={styles.routePreview} aria-label="GhostMode private execution pipeline">
             <div className={styles.routeConsoleHead}>
               <span>PRIVATE ROUTE</span>
               <span>STRK20</span>
@@ -764,10 +805,10 @@ export default function GhostWorkbench() {
             </div>
             <div className={styles.routeConsoleFoot}>
               <span>GHOSTMODE RECEIPT</span>
-              <span>Request #94281</span>
-              <span>State: verified</span>
+              <span>Illustrative route</span>
+              <span>State: no transaction</span>
             </div>
-          </div>
+          </section>
         </section>
 
         <section id="problem" className={styles.problemSection} aria-labelledby="problem-title">
@@ -779,7 +820,7 @@ export default function GhostWorkbench() {
             <p>Who your agent pays. What it buys. How much it spends. When it moves.</p>
             <p>That information can expose strategy before the agent finishes the job.</p>
           </div>
-          <div className={styles.privacyWindow} aria-label="Privacy window example">
+          <div className={styles.privacyWindow}>
             <span>PRIVATE WINDOW</span>
             <div><b>Sender</b><i aria-hidden="true" /></div>
             <div><b>Amount</b><i aria-hidden="true" /></div>
@@ -791,12 +832,13 @@ export default function GhostWorkbench() {
         <section id="workbench" ref={workbenchRef} className={styles.workbench} aria-labelledby="workbench-title">
           <div className={styles.workbenchHeader}>
             <div>
-              <span className={styles.sectionKicker}>LIVE AGENT CONSOLE / 01—04</span>
+              <span className={styles.sectionKicker}>AGENT CONSOLE / 01—04</span>
               <h2 id="workbench-title">Inspect. Prove. Execute.</h2>
               <p>A real x402 challenge becomes one explicit privacy decision and one atomic STRK20 route.</p>
             </div>
             <div className={styles.connectionMeta}>
               <span>{connected ? `${walletName} · ${shorten(address)}` : "wallet offline"}</span>
+              {connected && address ? <span className={styles.fullAddress}>Account: {address}</span> : null}
               <span className={connected && hasPrivateWalletApi ? styles.good : styles.caution}>{connected ? (walletApiVersions.at(-1) ? `API ${walletApiVersions.at(-1)}` : "privacy API missing") : ""}</span>
               <span className={isExpectedNetwork ? styles.good : styles.caution}>{isExpectedNetwork ? GhostModeChainId : chain ? "wrong network" : "network unknown"}</span>
             </div>
@@ -823,6 +865,7 @@ export default function GhostWorkbench() {
                 />
               </label>
               <button
+                type="button"
                 className={styles.primaryButton}
                 data-state={quoteState}
                 onClick={inspectPurchase}
@@ -908,7 +951,7 @@ export default function GhostWorkbench() {
                 <div className={styles.publicFunding} data-low={publicStrkBalance !== null && publicStrkBalance < ONE_STRK}>
                   <span>PUBLIC STRK</span>
                   <strong>{publicStrkBalance === null ? "Connect to check" : `${formatStrk(publicStrkBalance.toString())} STRK`}</strong>
-                  <p>The shield amount and the wallet's fee allowance must both fit in this public balance.</p>
+                  <p>Requested shield: 1 STRK · Fee: wallet estimate · Required: 1 STRK + displayed fee.</p>
                   {GhostModeTargetNetwork === "sepolia" ? <a href={SEPOLIA_FAUCET_URL} target="_blank" rel="noreferrer">Get Sepolia STRK ↗</a> : null}
                 </div>
                 <div className={styles.chainEvidence} data-live={chainEvidence !== null}>
@@ -930,15 +973,16 @@ export default function GhostWorkbench() {
                     </>
                   ) : <p>{address ? "Checking Starknet…" : "Connect to verify deposits."}</p>}
                 </div>
-                <button className={styles.secondaryButton} onClick={shieldBudget} disabled={receipt.state === "loading"}>Shield 1 STRK</button>
+                <button type="button" className={styles.secondaryButton} onClick={shieldBudget} disabled={receipt.state === "loading"}>Shield 1 STRK</button>
                 {pendingShield ? (
                   <>
-                    <button className={styles.secondaryButton} onClick={() => void checkPendingShield()} disabled={receipt.state === "loading"}>Recover pending shield</button>
-                    <button className={styles.tertiaryButton} onClick={clearPendingShield} disabled={receipt.state === "loading"} title="Only clear this after checking wallet Activity">Clear checked marker</button>
+                    <button type="button" className={styles.secondaryButton} onClick={() => void checkPendingShield()} disabled={receipt.state === "loading"}>Recover pending shield</button>
+                    <button type="button" className={styles.tertiaryButton} onClick={clearPendingShield} disabled={receipt.state === "loading"} title="Only clear this after checking wallet Activity">Clear checked marker</button>
                   </>
                 ) : null}
-                <button className={styles.secondaryButton} onClick={readBalances} disabled={receipt.state === "loading"}>Read shielded balance</button>
+                <button type="button" className={styles.secondaryButton} onClick={readBalances} disabled={receipt.state === "loading"}>Read shielded balance</button>
                 <button
+                  type="button"
                   className={styles.primaryButton}
                   onClick={executePurchase}
                   disabled={!quote || !connected || receipt.state === "loading"}
@@ -1006,9 +1050,9 @@ export default function GhostWorkbench() {
                 </label>
               </div>
               <div className={styles.compilerActions}>
-                <button className={styles.primaryButton} onClick={compileCompatibility}>Analyze compatibility</button>
-                <button className={styles.secondaryButton} onClick={exportCompatibility} disabled={!compatibilityReport}>Export report</button>
-                <button className={styles.secondaryButton} onClick={exportManifest} disabled={!manifest}>Export x402 adapter</button>
+                <button type="button" className={styles.primaryButton} onClick={compileCompatibility}>Analyze compatibility</button>
+                <button type="button" className={styles.secondaryButton} onClick={exportCompatibility} disabled={!compatibilityReport}>Export report</button>
+                <button type="button" className={styles.secondaryButton} onClick={exportManifest} disabled={!manifest}>Export x402 adapter</button>
               </div>
             </div>
             <div className={styles.adapterOutput} aria-live="polite">

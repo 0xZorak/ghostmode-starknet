@@ -148,8 +148,6 @@ export default function WalletAccountV6Tag() {
   const myWalletAccount = useStoreWallet((state) => state.myWalletAccount);
   const connectedAddress = useStoreWallet((state) => state.address);
   const isConnected = useStoreWallet((state) => state.isConnected);
-  const chain = useStoreWallet((state) => state.chain);
-  const [chainIdWA, setChainIdWA] = useState<string>(chain);
 
   // STRK20 privacy pool is available on Mainnet (index 0) and Sepolia (index 2).
   const networkName = constants.Strk20Networks[myFrontendProviderIndex];
@@ -177,16 +175,6 @@ export default function WalletAccountV6Tag() {
   const [deploying, setDeploying] = useState<boolean>(false);
   // Active action tab (Umbra-style single-action interface).
   const [tab, setTab] = useState<TabKey>("shield");
-
-  const getWAchainId = () => {
-    myWalletAccount?.provider
-      .getChainId()
-      .then((result: any) => setChainIdWA(result.toString()));
-  };
-
-  useEffect(() => {
-    getWAchainId();
-  }, [myFrontendProviderIndex, chain]);
 
   // Submit STRK20 actions through the WalletAccountV6 instance, show the tx hash, then
   // wait for the receipt (privacy-pool txs verify a STARK proof on-chain - long budget).
@@ -502,6 +490,7 @@ export default function WalletAccountV6Tag() {
       <div className={styles.tabs}>
         {TABS.map((t) => (
           <button
+            type="button"
             key={t.key}
             className={`${styles.tab} ${tab === t.key ? styles.tabActive : ""}`}
             onClick={() => setTab(t.key)}
@@ -552,6 +541,7 @@ export default function WalletAccountV6Tag() {
             NEXT_PUBLIC_STRK20_ECHO_HELPER_SEPOLIA.
           </div>
           <button
+            type="button"
             className={`${styles.btn} ${styles.btnGreen} ${styles.btnBlock}`}
             disabled={deploying}
             onClick={handleDeployHelper}
@@ -564,7 +554,7 @@ export default function WalletAccountV6Tag() {
 
       {/* Primary CTA - connect prompt until a wallet is connected. */}
       {isConnected ? (
-        <button className={styles.btnCta} disabled={active.disabled} onClick={active.onRun}>
+        <button type="button" className={styles.btnCta} disabled={active.disabled} onClick={active.onRun}>
           {active.cta}
         </button>
       ) : (

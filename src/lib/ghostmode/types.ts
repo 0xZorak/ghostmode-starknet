@@ -107,10 +107,12 @@ export type PrivacyPlan = {
 };
 
 export type PaymentQuote = {
-  version: "ghostmode-x402/0.1";
+  version: "ghostmode-http402/0.2";
   network: "sepolia" | "mainnet";
   chainId: "SN_SEPOLIA" | "SN_MAIN";
   quoteId: string;
+  nonce: string;
+  termsCommitment: string;
   resourceCommitment: string;
   seller: string;
   gate: string;

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { RpcProvider, constants, num } from "starknet";
 import { GhostModeGate, GhostModePoolAddress, GhostModeTargetNetwork } from "@/utils/constants";
 import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
+import { quoteStoreDurable, quoteStoreMode, quoteStoreReady } from "@/lib/ghostmode/server/quote-store";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,13 @@ export async function GET() {
     }
   }
   const healthy = rpc === "ok" && privacy === "ok";
+  const storage = { status: quoteStoreReady() ? "ready" : "not_configured", mode: quoteStoreMode(), durable: quoteStoreDurable() };
+  const quoteSigner = process.env.GHOSTMODE_QUOTE_SIGNER_PRIVATE_KEY && process.env.GHOSTMODE_QUOTE_SIGNER_PUBLIC_KEY
+    ? { status: "configured" as const }
+    : { status: "not_configured" as const };
+  const ready = healthy && receiptContract === "ok" && receiptAuthorization === "ok" && sellerVerifier === "ok" && storage.status === "ready" && storage.durable;
   return NextResponse.json({
+    status: ready ? "ready" : "degraded",
     app: "ok",
     network: GhostModeTargetNetwork,
     rpc,
@@ -73,7 +80,19 @@ export async function GET() {
     receiptContract,
     receiptAuthorization,
     sellerVerifier,
-    ready: healthy && receiptContract === "ok" && receiptAuthorization === "ok" && sellerVerifier === "ok",
+    storage,
+    quoteSigner,
+    prover: { status: "wallet_managed", note: "Buyer proving is delegated to the privacy-enabled wallet." },
+    indexer: { status: "wallet_managed", note: "Buyer discovery is delegated to the privacy-enabled wallet; seller discovery is reported by sellerVerifier." },
+    components: {
+      rpc: { status: rpc },
+      strk20: { status: privacy, address: GhostModePoolAddress },
+      receiptGate: { status: receiptContract, address: GhostModeGate, authorization: receiptAuthorization },
+      quoteSigner,
+      sellerVerifier: { status: sellerVerifier },
+      storage,
+    },
+    ready,
   }, {
     status: healthy ? 200 : 503,
     headers: { "Cache-Control": "no-store" },

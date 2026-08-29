@@ -15,7 +15,7 @@ sierra = true
 casm = true
 
 [scripts]
-test = "UNIVERSAL_SIERRA_COMPILER=../.tools/bin/universal-sierra-compiler ../.tools/bin/snforge test"
+test = "bash ../scripts/test-contracts.sh"
 
 [tool.scarb]
 allow-prebuilt-plugins = ["snforge_std"]

@@ -78,7 +78,7 @@ payer → seller → token → amount
 
 ## Demo flow
 
-The included workbench uses an HTTP `402 Payment Required`-style endpoint for a threat-intelligence report. This is a GhostMode draft format (`ghostmode-x402/0.1`), not a claim of compatibility with every x402 implementation.
+The included workbench uses HTTP `402 Payment Required` semantics for a threat-intelligence report. This is the GhostMode protocol (`ghostmode-http402/0.2`), not a claim of formal x402 interoperability. Version 0.2 cryptographically commits the network, seller, gate, token, amount, resource commitment, and nonce into the signed quote ID.
 
 ```mermaid
 sequenceDiagram
@@ -280,8 +280,10 @@ Start with the [documentation map](docs/README.md):
 - [API](docs/api.md)
 - [ReceiptGate](docs/receipt-contract.md)
 - [Seller verification](docs/seller-verification.md)
-- [Security](docs/security.md) and [threat model](docs/threat-model.md)
+- [Deployment](docs/deployment.md) and [key management](docs/key-management.md)
+- [Security](docs/security.md), [threat model](docs/threat-model.md), and [internal security review](docs/internal-security-review.md)
 - [Troubleshooting](docs/troubleshooting.md) and [limitations](docs/limitations.md)
+- [Three-minute demo script](DEMO_SCRIPT.md)
 
 ## Contributing and security
 

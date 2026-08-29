@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ec, num, RpcProvider } from "starknet";
 import { GhostModeGate, GhostModeSeller, GhostModeTargetNetwork } from "@/utils/constants";
-import { quoteStoreMode } from "@/lib/ghostmode/server/quote-store";
+import { quoteStoreDurable, quoteStoreMode, quoteStoreReady } from "@/lib/ghostmode/server/quote-store";
 import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
 
 export const dynamic = "force-dynamic";
@@ -39,11 +39,13 @@ export async function GET() {
     quoteSignerConfigured: Boolean(signerPrivateKey && signerPublicKey),
     receiptAuthorizationConfigured,
     quoteStore: quoteStoreMode(),
+    storageReady: quoteStoreReady(),
+    storageDurable: quoteStoreDurable(),
   };
   return NextResponse.json({
     readyForShieldTesting: true,
     readyForPrivatePurchaseTesting: checks.receiptGateConfigured && checks.sellerConfigured && checks.receiptAuthorizationConfigured,
-    readyForResourceUnlockTesting: checks.receiptGateConfigured && checks.sellerConfigured && checks.receiptAuthorizationConfigured && checks.sellerVerifierConfigured,
+    readyForResourceUnlockTesting: checks.receiptGateConfigured && checks.sellerConfigured && checks.receiptAuthorizationConfigured && checks.sellerVerifierConfigured && checks.storageReady && checks.storageDurable,
     checks,
   }, { headers: { "Cache-Control": "no-store" } });
 }

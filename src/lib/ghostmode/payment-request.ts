@@ -1,5 +1,6 @@
 import { constants, num } from "starknet";
 import type { AgentPaymentRequestV1 } from "./types";
+import { assertRequestIntegrity } from "./quote-integrity";
 
 function validFelt(value: unknown, allowZero = false): value is string {
   if (typeof value !== "string") return false;
@@ -39,6 +40,9 @@ export function validatePaymentRequest(value: unknown, nowSeconds = Math.floor(D
     || !validFelt(request.authorization.r)
     || !validFelt(request.authorization.s)) {
     errors.push("authorization must contain a non-zero Stark-curve r/s signature");
+  }
+  if (errors.length === 0) {
+    try { assertRequestIntegrity(request as AgentPaymentRequestV1); } catch { errors.push("requestId does not commit to the payment terms"); }
   }
   return errors.length ? { success: false, errors } : { success: true, data: request as AgentPaymentRequestV1 };
 }

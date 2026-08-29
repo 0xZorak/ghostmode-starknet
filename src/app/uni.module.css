@@ -273,6 +273,13 @@
   font-size: var(--text-xs);
 }
 
+.fullAddress {
+  max-width: min(100%, 42rem);
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono), monospace;
+  text-transform: none;
+}
+
 .good { color: var(--color-accent); }
 .caution { color: var(--color-warning); }
 

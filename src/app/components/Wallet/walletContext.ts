@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
-import { ProviderInterface, AccountInterface, type WalletAccountV6 } from "starknet";
-import { type WalletWithStarknetFeatures } from "@starknet-io/get-starknet-wallet-standard/features";
+import type { ProviderInterface, AccountInterface, WalletAccountV6 } from "starknet";
+import type { WalletWithStarknetFeatures } from "@starknet-io/get-starknet-wallet-standard/features";
 
 
 // import { StarknetWindowObject } from "@/app/core/StarknetWindowObject";

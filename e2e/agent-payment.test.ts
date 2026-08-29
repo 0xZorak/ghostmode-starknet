@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { WalletAccountV6 } from "starknet";
 import { GhostMode } from "../src/lib/ghostmode/sdk";
 import type { AgentPaymentRequestV1 } from "../src/lib/ghostmode/types";
+import { computeQuoteId, computeQuoteTermsCommitment } from "../src/lib/ghostmode/quote-integrity";
 
 function request(overrides: Partial<AgentPaymentRequestV1> = {}): AgentPaymentRequestV1 {
-  return {
+  const value: AgentPaymentRequestV1 = {
     version: "1",
     requestId: "0x11",
     network: "starknet",
@@ -21,6 +22,16 @@ function request(overrides: Partial<AgentPaymentRequestV1> = {}): AgentPaymentRe
     authorization: { scheme: "stark-curve", r: "0x77", s: "0x88" },
     ...overrides,
   };
+  value.requestId = computeQuoteId(computeQuoteTermsCommitment({
+    chainId: value.chainId,
+    seller: value.seller,
+    gate: value.receiptGate,
+    token: value.token,
+    amount: value.amount,
+    resourceCommitment: value.resourceCommitment,
+    nonce: value.nonce,
+  }));
+  return value;
 }
 
 describe("agent payment integration", () => {

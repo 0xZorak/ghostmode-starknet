@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { validatePaymentRequest } from "./payment-request";
 import type { AgentPaymentRequestV1 } from "./types";
+import { computeQuoteId, computeQuoteTermsCommitment } from "./quote-integrity";
 
-const request: AgentPaymentRequestV1 = {
+const requestBase: AgentPaymentRequestV1 = {
   version: "1",
   requestId: "0x11",
   network: "starknet",
@@ -17,6 +18,13 @@ const request: AgentPaymentRequestV1 = {
   receiptGate: "0x55",
   resourceCommitment: "0x66",
   authorization: { scheme: "stark-curve", r: "0x77", s: "0x88" },
+};
+const request: AgentPaymentRequestV1 = {
+  ...requestBase,
+  requestId: computeQuoteId(computeQuoteTermsCommitment({
+    chainId: requestBase.chainId, seller: requestBase.seller, gate: requestBase.receiptGate,
+    token: requestBase.token, amount: requestBase.amount, resourceCommitment: requestBase.resourceCommitment, nonce: requestBase.nonce,
+  })),
 };
 
 describe("agent payment request", () => {

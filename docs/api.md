@@ -43,7 +43,7 @@ Success is intentionally HTTP `402`:
 {
   "error": "payment_required",
   "message": "This resource requires a private STRK20 payment.",
-  "quote": { "version": "ghostmode-x402/0.1" }
+  "quote": { "version": "ghostmode-http402/0.2" }
 }
 ```
 

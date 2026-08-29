@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { hash, num, RpcProvider, validateAndParseAddress } from "starknet";
 import {
   addrSTRK,
@@ -6,6 +6,7 @@ import {
   GhostModeTargetNetwork,
 } from "@/utils/constants";
 import { ghostModeServerRpcUrl } from "@/lib/ghostmode/server/network";
+import { checkRateLimit } from "@/lib/ghostmode/server/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ const recoveryRpc = new RpcProvider({
 });
 
 export async function GET(request: NextRequest) {
+  const rate = checkRateLimit(request, "chain-evidence", 60);
+  if (!rate.allowed) return NextResponse.json({ error: "RATE_LIMITED", retryAfterSeconds: rate.retryAfterSeconds }, { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } });
   const rawAddress = request.nextUrl.searchParams.get("address");
   if (!rawAddress) return NextResponse.json({ error: "address is required" }, { status: 400 });
 

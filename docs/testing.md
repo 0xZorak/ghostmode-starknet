@@ -10,11 +10,12 @@ npm run check
 
 This runs:
 
-1. `npm run typecheck`
-2. `npm test`
-3. `npm run test:e2e`
-4. `npm --prefix seller-verifier run check`
-5. `npm run build`
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm test`
+4. `npm run test:e2e`
+5. `npm --prefix seller-verifier run check`
+6. `npm run build`
 
 It does not run Cairo tests or a real wallet transaction.
 
@@ -24,7 +25,7 @@ It does not run Cairo tests or a real wallet transaction.
 npm test
 ```
 
-Seven files / 15 tests cover privacy routing and no-downgrade behavior, compatibility decisions, payment request validation, wallet action construction, quote authorization, exact gate-event verification, and quote release/replay state.
+Twelve files / 28 tests cover privacy routing and no-downgrade behavior, compatibility decisions, payment request integrity, wallet action construction, quote authorization, exact gate-event verification, quote release/replay state, agent policy/orchestration, boundary validation, rate limiting, and seller note-ID matching.
 
 ## SDK integration tests
 
@@ -43,7 +44,7 @@ npm run typecheck
 npm run build
 ```
 
-`lint` is currently an alias for TypeScript checking; ESLint/format enforcement is not configured.
+`lint` runs Biome's recommended JavaScript/TypeScript/React rules. Existing low-priority warnings are reported but do not hide errors; TypeScript is a separate gate.
 
 ## Seller service
 
@@ -51,7 +52,7 @@ npm run build
 npm --prefix seller-verifier run check
 ```
 
-This performs JavaScript syntax checks only. The seller dependency install, registration, note discovery, and service-to-service flow require credentials/services and were not run in the documentation pass.
+This performs JavaScript syntax checks only. Exact note matching is unit-tested by the root test suite. Seller dependency installation, registration, note discovery, and service-to-service behavior remain blocked on GitHub Packages authorization and dedicated testnet keys.
 
 ## Cairo tests
 
@@ -90,10 +91,10 @@ The “dry run” is still a read-only configuration check; it cannot estimate a
 | Command | Result |
 |---|---|
 | `npm run typecheck` | Passed |
-| `npm test` | 7 files, 15 tests passed |
+| `npm test` | 12 files, 28 tests passed |
 | `npm run test:e2e` | 1 file, 3 mocked-wallet tests passed |
 | `npm --prefix seller-verifier run check` | Passed syntax checks |
-| `npm run build` | Passed; 1 page and 8 dynamic API routes built |
+| `npm run build` | Passed; 2 static pages and 8 dynamic API routes built |
 | `cd cairo && scarb test` | 9 passed, 0 failed |
 | Sepolia read-only network check | RPC, pool, token passed; gate/verifier not configured |
 | Mainnet read-only network check | RPC, pool, token passed; gate/verifier not configured |

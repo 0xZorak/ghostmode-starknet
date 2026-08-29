@@ -7,4 +7,8 @@ export { evaluatePrivacy, executePrivateIntent } from "./privacy-engine";
 export { calculatePrivacyScore } from "./privacy-score";
 export { assertPaymentRequest, validatePaymentRequest } from "./payment-request";
 export { GhostMode } from "./sdk";
+export { evaluateAgentSpend } from "./agent-policy";
+export type { AgentSpendDecision, AgentSpendingPolicy } from "./agent-policy";
+export { PrivateResearchAgent } from "./research-agent";
+export type { AgentPaymentExecutor, ResearchAgentState, ResearchRun, ResearchService } from "./research-agent";
 export type * from "./types";

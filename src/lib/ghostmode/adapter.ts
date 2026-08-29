@@ -1,4 +1,5 @@
 import type { AdapterManifest, PaymentQuote } from "./types";
+import { assertQuoteIntegrity } from "./quote-integrity";
 
 export function normalizeEndpoint(input: string): string {
   const value = input.trim();
@@ -15,10 +16,12 @@ export function normalizeEndpoint(input: string): string {
 export function isPaymentQuote(value: unknown): value is PaymentQuote {
   if (!value || typeof value !== "object") return false;
   const quote = value as Partial<PaymentQuote>;
-  return quote.version === "ghostmode-x402/0.1"
+  const structurallyValid = quote.version === "ghostmode-http402/0.2"
     && (quote.network === "sepolia" || quote.network === "mainnet")
     && (quote.chainId === "SN_SEPOLIA" || quote.chainId === "SN_MAIN")
     && typeof quote.quoteId === "string"
+    && typeof quote.nonce === "string"
+    && typeof quote.termsCommitment === "string"
     && typeof quote.resourceCommitment === "string"
     && typeof quote.seller === "string"
     && typeof quote.gate === "string"
@@ -30,6 +33,13 @@ export function isPaymentQuote(value: unknown): value is PaymentQuote {
     && typeof quote.authorization.s === "string"
     && !!quote.resource
     && typeof quote.resource.name === "string";
+  if (!structurallyValid) return false;
+  try {
+    assertQuoteIntegrity(quote as PaymentQuote);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function compileAdapterManifest(endpoint: string, quote: PaymentQuote): AdapterManifest {

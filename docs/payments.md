@@ -1,6 +1,6 @@
 # Private payments
 
-GhostMode's flagship payment flow is an application protocol built on STRK20. It uses HTTP status `402`, but its quote schema is a project draft (`ghostmode-x402/0.1`), not a claim of universal x402 compatibility.
+GhostMode's flagship payment flow is an application protocol built on STRK20. It uses HTTP status `402`, but its quote schema is a project protocol (`ghostmode-http402/0.2`), not a claim of formal x402 interoperability.
 
 ## Participants
 
@@ -15,7 +15,7 @@ GhostMode's flagship payment flow is an application protocol built on STRK20. It
 
 ```json
 {
-  "version": "ghostmode-x402/0.1",
+  "version": "ghostmode-http402/0.2",
   "network": "sepolia",
   "chainId": "SN_SEPOLIA",
   "quoteId": "0x...",

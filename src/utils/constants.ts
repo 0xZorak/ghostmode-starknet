@@ -1,4 +1,4 @@
-import { ProviderInterface, RpcProvider } from "starknet";
+import { type ProviderInterface, RpcProvider } from "starknet";
 
 // ─── Example config — swap these for your own token / pool / helper ─────────
 

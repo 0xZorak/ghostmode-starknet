@@ -4,10 +4,12 @@ import { verifyGateReceipt } from "./payment-verification";
 import type { PaymentQuote } from "../types";
 
 const quote: PaymentQuote = {
-  version: "ghostmode-x402/0.1",
+  version: "ghostmode-http402/0.2",
   network: "sepolia",
   chainId: "SN_SEPOLIA",
   quoteId: "0x11",
+  nonce: "0x99",
+  termsCommitment: "0xaa",
   resourceCommitment: "0x22",
   seller: "0x33",
   gate: "0x44",

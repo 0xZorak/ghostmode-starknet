@@ -93,7 +93,7 @@
 
 ### Draft HTTP 402 schema
 
-**Why it exists:** `ghostmode-x402/0.1` is project-specific.<br>
+**Why it exists:** `ghostmode-http402/0.2` is project-specific and uses HTTP 402 semantics without claiming formal x402 interoperability.<br>
 **Impact:** other x402 clients/servers are not automatically compatible.<br>
 **Workaround:** use the documented quote parser and adapter.<br>
 **Future direction:** align with a stable interoperability specification after review.
