@@ -18,7 +18,7 @@ Status labels describe verified reality, not intended behavior.
 | Resource unlock | BLOCKED | Server code fails closed, but durable replay protection and a real paid unlock are not verified. |
 | Agent | PARTIAL | Intent planning and payment orchestration exist. The protected payload is deterministic, not an autonomous research agent. |
 | SDK | PARTIAL | Local TypeScript facade exists and tests pass. No publishable package boundary or minimal external example exists. |
-| CI | VERIFIED | Tracked GitHub Actions run Node 24 app checks and pinned Scarb/Starknet Foundry contract tests. Local equivalent passes; remote run awaits push. |
+| CI | BLOCKED | Workflow is tracked and local equivalents pass. GitHub run `33224762551` rejected both jobs before startup because the account is locked by a billing issue; see GM-ACT-005. |
 | Hosting | NOT STARTED | GitHub has no Website URL; no frontend or verifier deployment is verified. |
 | Sepolia | BLOCKED | Read-only network checks work; no current gate, seller registration, shield, private payment, receipt, or unlock evidence. |
 | Mainnet | NOT STARTED | Correctly gated behind Sepolia. `strk20.json` remains empty. |
@@ -29,4 +29,5 @@ Status labels describe verified reality, not intended behavior.
 
 - `npm run check`: VERIFIED — Biome lint passed; TypeScript passed; 28/28 unit tests passed; 3/3 mocked integration tests passed; seller-verifier syntax passed; Next.js production build passed. The seller syntax check does not install or execute its runtime dependencies.
 - `scarb test`: VERIFIED — 9/9 ReceiptGate tests passed.
+- Fresh clone of pushed commit `f5fc22f`: VERIFIED — `npm ci` found zero vulnerabilities and `npm run check` passed without local environment files.
 - These tests do not prove wallet, prover, indexer, seller discovery, Sepolia transaction, hosting, or Mainnet behavior.

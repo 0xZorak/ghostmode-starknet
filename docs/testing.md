@@ -98,6 +98,8 @@ The “dry run” is still a read-only configuration check; it cannot estimate a
 | `cd cairo && scarb test` | 9 passed, 0 failed |
 | Sepolia read-only network check | RPC, pool, token passed; gate/verifier not configured |
 | Mainnet read-only network check | RPC, pool, token passed; gate/verifier not configured |
+| Fresh clone of `f5fc22f` | `npm ci` found 0 vulnerabilities; `npm run check` passed |
+| GitHub Actions run `33224762551` | Jobs did not start: account locked due to a GitHub billing issue |
 
 ## Manual live test still required
 

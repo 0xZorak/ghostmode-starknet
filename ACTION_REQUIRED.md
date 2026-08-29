@@ -74,6 +74,20 @@ This file contains only actions that cannot be completed safely without human au
 - What to return: `done` only.
 - Safety warning: never paste the GitHub token into chat or commit it to `.npmrc`.
 
+### GM-ACT-005 — Restore GitHub Actions billing access
+
+- Priority: P1
+- Environment: GitHub
+- Reason: push `f5fc22f` triggered workflow run `33224762551`, but GitHub refused to start both jobs because the account is locked due to a billing issue.
+- Exact steps:
+  1. Open the GitHub account/organization billing settings for `0xZorak/ghostmode-starknet`.
+  2. Resolve the spending limit, payment method, or account lock shown by GitHub.
+  3. Open Actions run `33224762551` and choose **Re-run all jobs**.
+  4. Reply only `done` after both jobs have started.
+- Expected result: the `application` and `receipt-gate` jobs run instead of being rejected before startup.
+- What to return: `done` only; I can inspect the public run status.
+- Safety warning: never send payment-card details, billing screenshots containing private data, or GitHub credentials.
+
 ## Completed
 
 No human-only action has verified evidence yet.
