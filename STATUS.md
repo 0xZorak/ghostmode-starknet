@@ -10,10 +10,10 @@ Status labels describe verified reality, not intended behavior.
 | API | PARTIAL | Routes build; strict boundary schemas, per-instance rate limits, safe storage failures, and validation tests pass. Valuable-resource authentication and distributed edge limiting remain. |
 | Database | PARTIAL | Transactional Postgres store, migration, unique transaction-hash constraint, and memory-path replay tests exist. No live Postgres migration/restart test is verified. |
 | Privacy engine | VERIFIED | Four unit tests pass and unsupported private requirements fail closed. This verifies policy code only. |
-| Wallet | BLOCKED | Mocked Wallet API tests pass; Xverse previously timed out and emitted `M_ID`. No real wallet success is verified. |
-| STRK20 | BLOCKED | Sepolia pool/RPC are reachable. Registration, shield, balance discovery, and private transfer lack verified transaction evidence. |
-| ReceiptGate | PARTIAL | Current Cairo source compiles and 9/9 tests pass. Read-only Sepolia check verifies deployer `0x0573…8327` is deployed with ~5.0055 test STRK. Current gate deployment awaits owner-generated quote authority. |
-| Quote signer | PARTIAL | Private key generation no longer prints the secret; payment terms are committed into the signed quote ID and tamper tests pass. Runtime keys/onchain authority are not configured. |
+| Wallet | PARTIAL | Buyer `0x054a…6d2a` has a nonzero public viewing key in the Sepolia pool. Dapp-facing Xverse shield/payment calls and balance discovery remain unverified. |
+| STRK20 | PARTIAL | Sepolia pool/RPC and buyer registration are verified read-only. Shield, note maturity, balance discovery, and private transfer lack verified transaction evidence. |
+| ReceiptGate | BLOCKED | Current Cairo source compiles and 9/9 tests pass. Deployment failed pre-submission fee validation: ~10.09 STRK maximum estimate exceeded ~5.01 STRK balance. No gate was deployed; GM-ACT-006 is open. |
+| Quote signer | PARTIAL | Secure local key generation is verified and payment terms are committed into signed quote IDs. Matching onchain ReceiptGate authority and runtime server configuration remain unavailable. |
 | Seller verifier | BLOCKED | Exact-transaction note-ID matching and two adversarial tests pass; server hardening is implemented. Runtime SDK dependencies remain unavailable due missing GitHub Packages scope, and it is not configured, hosted, or live-tested. |
 | Resource unlock | BLOCKED | Server code fails closed, but durable replay protection and a real paid unlock are not verified. |
 | Agent | PARTIAL | Intent planning and payment orchestration exist. The protected payload is deterministic, not an autonomous research agent. |

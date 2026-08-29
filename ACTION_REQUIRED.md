@@ -4,20 +4,6 @@ This file contains only actions that cannot be completed safely without human au
 
 ## Open
 
-### GM-ACT-000 — Generate the Sepolia quote-authority key
-
-- Priority: P0
-- Environment: Sepolia
-- Reason: the current ReceiptGate must be deployed with a public quote-authority key; the server needs the matching private key. The deployer is already deployed and read-only verification shows approximately 5.0055 Sepolia STRK.
-- Exact steps:
-  1. In the repository root, run `npm run keys:quote`.
-  2. The command writes the private/public pair to gitignored `.secrets/quote-signer.env` with owner-only permissions and prints only the public key.
-  3. Do not open, paste, or commit the private value.
-  4. Reply only `done`.
-- Expected result: `.secrets/quote-signer.env` exists and the public key is printed once.
-- What to return: `done` only.
-- Safety warning: never send the private key; signer rotation requires a new ReceiptGate deployment.
-
 ### GM-ACT-001 — Authorize a dedicated Sepolia seller account
 
 - Priority: P0
@@ -32,19 +18,18 @@ This file contains only actions that cannot be completed safely without human au
 - What to return: public address and `done` only.
 - Safety warning: never send the account private key or seed phrase.
 
-### GM-ACT-002 — Complete buyer wallet privacy activation
+### GM-ACT-006 — Top up the Sepolia ReceiptGate deployer
 
 - Priority: P0
-- Environment: Sepolia
-- Reason: only the wallet can create and retain the buyer viewing key and approve a real shield/private payment.
+- Environment: Starknet Sepolia
+- Reason: the guarded deployment failed fee validation before submission. The maximum fee estimate was approximately 10.09 STRK, above the deployer's approximately 5.01 STRK balance.
 - Exact steps:
-  1. Update Xverse to the latest release.
-  2. Select Sepolia and confirm the full connected address shown by Xverse matches GhostMode.
-  3. Activate/register privacy from the wallet's native privacy interface if offered.
-  4. Do not repeat a timed-out deposit until wallet Activity and Voyager confirm whether it landed.
-- Expected result: wallet privacy identity is registered and the same account is selected in both products.
-- What to return: public address and registration transaction hash, if the wallet provides one.
-- Safety warning: never send wallet secrets or a recovery phrase.
+  1. Fund `0x057312187e9667687af5b7befd704a2a0bfe8fcd5d7db600341f5ecd9dc88327` with Sepolia STRK.
+  2. Bring its total balance to at least 14 STRK to leave a fee-estimate buffer.
+  3. Reply only `funded`.
+- Expected result: the public deployer balance is at least 14 Sepolia STRK.
+- What to return: `funded` only; the balance is publicly verifiable.
+- Safety warning: Sepolia tokens have no real value. Never send wallet secrets.
 
 ### GM-ACT-003 — Authorize hosted infrastructure accounts
 
@@ -90,4 +75,12 @@ This file contains only actions that cannot be completed safely without human au
 
 ## Completed
 
-No human-only action has verified evidence yet.
+### GM-ACT-000 — Generate the Sepolia quote-authority key
+
+- Completed: 2026-08-29
+- Evidence: gitignored `.secrets/quote-signer.env` exists with mode `0600`; the public-key field is present. Private material was not printed or committed.
+
+### GM-ACT-002 — Complete buyer wallet privacy activation
+
+- Completed: 2026-08-29
+- Evidence: read-only `get_public_key` against Sepolia STRK20 pool `0x0254…0d91` returned a nonzero key for buyer `0x054af4bc9dd14a0ad081902c6685e4993075c5720fc66a85d1f1a6ff64066d2a`.

@@ -26,6 +26,7 @@ This is an internal engineering review, not an independent security audit.
 - Evidence: `cairo/address.md` labels the known deployment historical; current source has seller-authority behavior that must be deployed and verified.
 - Impact: runtime authorization is unavailable or can target an incompatible ABI.
 - Required remediation: generate a quote authority, deploy the current class, record deployment JSON, and verify class/configuration onchain.
+- Latest attempt: quote authority generation is complete. The 2026-08-29 Sepolia deployment failed fee validation before submission because the maximum estimate (~10.09 STRK) exceeded the deployer balance (~5.01 STRK). No deployment hash or address exists from this attempt.
 
 ### GM-011 — Signed quote ID did not prove payment terms
 
