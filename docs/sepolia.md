@@ -80,7 +80,7 @@ NEXT_PUBLIC_GHOSTMODE_GATE_SEPOLIA=0x<gate-address>
 NEXT_PUBLIC_GHOSTMODE_SELLER_SEPOLIA=0x<registered-seller-address>
 ```
 
-The deployment recorded in `cairo/address.md` is historical and ABI-incompatible. Do not use it.
+The current verified deployment is recorded in `deployments/sepolia.json` and `cairo/address.md`. The separately labelled historical deployment is ABI-incompatible and must not be used.
 
 ## 7. Register and start seller verifier
 
@@ -113,4 +113,4 @@ Require `ready: true` and `readyForResourceUnlockTesting: true` before claiming 
 
 ## Current verification status
 
-On 2026-08-29 the read-only RPC, pool, and token checks passed. A current signed ReceiptGate, seller registration/service, and live wallet purchase were not verified. Do not describe this build as a working full Sepolia payment until those steps produce real evidence.
+On 2026-08-30 the current ReceiptGate was deployed at `0x047eecea2ea640de0c583a501fd001d639cd9bce5f0dc5cee7be6c95f048d71c`. Its pool and quote-authority configuration pass read-only verification. The buyer has a nonzero pool public key. Seller registration/service, shielding, the private payment, receipt creation, and resource unlock are not yet verified. Do not describe this build as a working full Sepolia payment until those steps produce real evidence.

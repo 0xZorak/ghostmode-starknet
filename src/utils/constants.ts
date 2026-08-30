@@ -12,7 +12,9 @@ export type GhostModeNetwork = "sepolia" | "mainnet";
 // change and still remains disabled until its own gate and seller are configured.
 export const GhostModeTargetNetwork: GhostModeNetwork =
     process.env.NEXT_PUBLIC_GHOSTMODE_NETWORK === "mainnet" ? "mainnet" : "sepolia";
-export const GhostModeGateSepolia = process.env.NEXT_PUBLIC_GHOSTMODE_GATE_SEPOLIA ?? "0x0";
+export const GhostModeGateSepolia =
+  process.env.NEXT_PUBLIC_GHOSTMODE_GATE_SEPOLIA ??
+  "0x047eecea2ea640de0c583a501fd001d639cd9bce5f0dc5cee7be6c95f048d71c";
 export const GhostModeSellerSepolia = process.env.NEXT_PUBLIC_GHOSTMODE_SELLER_SEPOLIA ?? "0x0";
 export const GhostModeGateMainnet = process.env.NEXT_PUBLIC_GHOSTMODE_GATE_MAINNET ?? "0x0";
 export const GhostModeSellerMainnet = process.env.NEXT_PUBLIC_GHOSTMODE_SELLER_MAINNET ?? "0x0";

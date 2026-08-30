@@ -22,11 +22,11 @@ This is an internal engineering review, not an independent security audit.
 
 ### GM-003 — Configured ReceiptGate is not authoritative
 
-- Status: VERIFIED
-- Evidence: `cairo/address.md` labels the known deployment historical; current source has seller-authority behavior that must be deployed and verified.
+- Status: FIXED BUT NOT LIVE-VERIFIED
+- Evidence: current source was deployed at `0x047eecea2ea640de0c583a501fd001d639cd9bce5f0dc5cee7be6c95f048d71c`; read-only verification confirms its pinned Sepolia pool and matching quote-authority public key.
 - Impact: runtime authorization is unavailable or can target an incompatible ABI.
 - Required remediation: generate a quote authority, deploy the current class, record deployment JSON, and verify class/configuration onchain.
-- Latest attempt: quote authority generation is complete. The 2026-08-29 Sepolia deployment failed fee validation before submission because the maximum estimate (~10.09 STRK) exceeded the deployer balance (~5.01 STRK). No deployment hash or address exists from this attempt.
+- Latest result: deployment succeeded on 2026-08-30 in transaction `0x036c4e5368c0ce234d94a67930b18030ab203d2273222c9b2cdb1f63d2dd5288`. Application defaults and deployment evidence now point to it. A live private invocation remains unverified.
 
 ### GM-011 — Signed quote ID did not prove payment terms
 

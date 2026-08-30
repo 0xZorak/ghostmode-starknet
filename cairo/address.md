@@ -6,6 +6,22 @@ Sepolia deployment account:
 
 The private key is stored only in the gitignored `.secrets/sncast-accounts.json`.
 
+## Current Sepolia ReceiptGate
+
+Deployed and verified on 2026-08-30. Read-only calls confirmed that the contract
+pins the expected Sepolia STRK20 pool and that its quote-authority key matches the
+local server authority's public key.
+
+- Contract: `0x047eecea2ea640de0c583a501fd001d639cd9bce5f0dc5cee7be6c95f048d71c`
+- Class: `0x03e84c2de7b675efb9e56d7761e8cfd1625f4a8013642b5f3cf094bbfc23fb8d`
+- Pool: `0x0254a6b2997ef52e9f830ce1f543f6b29768295e8d17e2267d672c552cfe0d91`
+- Quote authority: `0x4ac400937adebde70a4aa5610ad3f2ba7869bad2575815400666428cd47f851`
+- Declare transaction: `0x007df1b946424aeb3471248bbaf081bec5e9443a986bfa4d6409d32e04923d9f`
+- Deploy transaction: `0x036c4e5368c0ce234d94a67930b18030ab203d2273222c9b2cdb1f63d2dd5288`
+
+This verifies deployment and constructor configuration. It does not yet verify a
+live private payment or successful `privacy_invoke` call.
+
 ## Historical Sepolia ReceiptGate — do not configure
 
 This deployment predates the seller-authority constructor and signed `privacy_invoke`

@@ -5,7 +5,7 @@
 GhostMode evaluates what an agent action would reveal, chooses a supported STRK20 route, and refuses to submit when the requested confidentiality cannot be met. The flagship flow is an HTTP 402-style purchase: an agent pays a seller with an encrypted STRK20 note, records an opaque receipt in the same pool transaction, and receives the resource only after both sides of the payment are verified.
 
 > [!IMPORTANT]
-> GhostMode is a hackathon prototype, not an audited payment product. The policy engine, SDK, API, Cairo contract, and local verification flow are implemented and tested. A current ReceiptGate and seller verifier are not configured in this repository, so the complete live Sepolia purchase still requires deployment and manual wallet testing.
+> GhostMode is a hackathon prototype, not an audited payment product. The policy engine, SDK, API, Cairo contract, and local verification flow are implemented and tested. A compatible ReceiptGate is deployed and configured on Sepolia, but the seller verifier and complete private purchase are not live-verified.
 
 ## For judges
 
@@ -17,7 +17,7 @@ GhostMode evaluates what an agent action would reveal, chooses a supported STRK2
 | What is private? | In a normal encrypted pool transfer: the in-pool sender/recipient relationship, token, amount, and spent-note linkage. |
 | What remains observable? | Shield/unshield edges, transaction timing, STRK20 use, ReceiptGate address, opaque quote commitment, and offchain network metadata. |
 | What should I test? | Privacy refusal, compatibility analysis, quote inspection, wallet capability detection, unit/integration tests, and the Cairo replay/authorization tests. |
-| Is the full payment live? | Not yet. The current signed ReceiptGate and seller verifier are not configured; the older Sepolia gate is ABI-incompatible. |
+| Is the full payment live? | Not yet. The signed ReceiptGate is deployed and verified on Sepolia; seller registration, note discovery, private payment, and unlock still need live evidence. |
 
 Core implementation: [`src/lib/ghostmode/`](src/lib/ghostmode/), [`src/app/api/`](src/app/api/), [`cairo/src/lib.cairo`](cairo/src/lib.cairo), and [`seller-verifier/`](seller-verifier/).
 
@@ -261,12 +261,12 @@ scarb test
 | Network | Component | Status |
 |---|---|---|
 | Starknet Sepolia | STRK20 pool | Read-only contract check passed on 2026-08-29. |
-| Starknet Sepolia | Current signed ReceiptGate | Not configured or verified. |
+| Starknet Sepolia | Current signed ReceiptGate | Deployed and configuration-verified on 2026-08-30. |
 | Starknet Sepolia | Historical ReceiptGate | Deployed, but ABI-incompatible with this build; do not configure it. |
 | Starknet Mainnet | STRK20 pool | Read-only contract check passed on 2026-08-29. |
 | Starknet Mainnet | ReceiptGate | Not deployed or configured. |
 
-No compatible deployment address or mainnet transaction is recorded in `strk20.json`. Follow [Sepolia](docs/sepolia.md) first, then the guarded [Mainnet guide](docs/mainnet.md).
+The compatible Sepolia contract is recorded in `strk20.json`; its transactions array remains empty because that field is reserved for three Mainnet pool transactions. Follow [Sepolia](docs/sepolia.md) first, then the guarded [Mainnet guide](docs/mainnet.md).
 
 ## Documentation
 
