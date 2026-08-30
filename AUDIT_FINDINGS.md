@@ -38,10 +38,10 @@ This is an internal engineering review, not an independent security audit.
 ### GM-004 — Seller verifier is an undeployed high-value service
 
 - Status: VERIFIED
-- Evidence: the verifier requires a spending key and viewing key, binds to `127.0.0.1`, has no container/deployment manifest, and `npm --prefix seller-verifier ls --depth=0` reports its SDK and Starknet runtime dependencies missing.
+- Evidence: the verifier requires a spending key and viewing key and binds to `127.0.0.1`. Dependencies are now installed, a dedicated seller account/key match is verified, and a permanent viewing key is stored locally. Compatible prover/indexer endpoints, registration, container deployment, and a live discovery request remain unavailable.
 - Impact: it cannot currently support a hosted demo; compromise would expose seller privacy and spending authority.
 - Required remediation: isolate registration from runtime where possible, validate startup, add rate limiting/redaction, containerize, and deploy with a dedicated low-value account.
-- Reproduction: authenticated installation returned HTTP 403 because the local GitHub token lacks `read:packages`; tracked as `GM-ACT-004`.
+- Reproduction: Privacy SDK `0.14.3-rc.5` installs and syntax checks pass. Registration fails closed before submission while the prover/indexer configuration remains placeholder-only; tracked as `GM-ACT-007`.
 
 ### GM-005 — Ambiguous payment matching
 
@@ -86,6 +86,13 @@ This is an internal engineering review, not an independent security audit.
 - Evidence: protected data is deterministic and the SDK remains an internal module in a private application package.
 - Impact: “autonomous agent” and reusable infrastructure claims can mislead reviewers.
 - Required remediation: bounded spending policy plus real agent workflow; clean package boundary and minimal integration example.
+
+### GM-012 — Official SDK includes a vulnerable devnet archive dependency
+
+- Status: VERIFIED
+- Evidence: `npm audit --omit=dev` reports `decompress@4.2.1` through `@starkware-libs/starknet-privacy-sdk → starknet-devnet`, including critical archive path-traversal advisory `GHSA-mp2f-45pm-3cg9`. npm reports no fix for the pinned SDK tree.
+- Impact: GhostMode does not invoke devnet or archive extraction in the seller runtime, so the vulnerable path is not currently reachable through application behavior. It still increases supply-chain and future-maintenance risk in a key-holding service.
+- Required remediation: do not invoke the bundled devnet/archive tooling in production; isolate the verifier; track an upstream SDK release that removes or fixes this dependency; rerun the audit before deployment. Do not use `npm audit fix --force` against the pinned privacy stack.
 
 ## Informational constraints
 

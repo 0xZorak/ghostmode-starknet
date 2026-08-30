@@ -14,7 +14,7 @@ Status labels describe verified reality, not intended behavior.
 | STRK20 | PARTIAL | Sepolia pool/RPC and buyer registration are verified read-only. Shield, note maturity, balance discovery, and private transfer lack verified transaction evidence. |
 | ReceiptGate | PARTIAL | Current Cairo source compiles, 9/9 tests pass, and Sepolia deployment `0x047e…d71c` has the expected pool and quote authority. A live `privacy_invoke` remains unverified. |
 | Quote signer | PARTIAL | Secure local key generation is verified, local scripts load the gitignored key, payment terms are committed into signed quote IDs, and the onchain authority matches. Hosted runtime configuration remains unavailable. |
-| Seller verifier | BLOCKED | Exact-transaction note-ID matching and two adversarial tests pass; server hardening is implemented. Runtime SDK dependencies remain unavailable due missing GitHub Packages scope, and it is not configured, hosted, or live-tested. |
+| Seller verifier | PARTIAL | Exact-transaction note-ID matching and adversarial tests pass; SDK dependencies are installed; the dedicated Argent seller account/key match and funding are verified read-only; a permanent viewing key is stored locally. Compatible prover/indexer endpoints, registration, hosting, and live note discovery remain unavailable. |
 | Resource unlock | BLOCKED | Server code fails closed, but durable replay protection and a real paid unlock are not verified. |
 | Agent | PARTIAL | Intent planning and payment orchestration exist. The protected payload is deterministic, not an autonomous research agent. |
 | SDK | PARTIAL | Local TypeScript facade exists and tests pass. No publishable package boundary or minimal external example exists. |

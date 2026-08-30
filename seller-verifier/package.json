@@ -8,6 +8,7 @@
     "start:local": "node --env-file=.env.local src/server.mjs",
     "register": "node --env-file=.env.local src/register.mjs",
     "generate:viewing-key": "node src/generate-viewing-key.mjs",
+    "generate:viewing-key:write": "node src/generate-viewing-key.mjs --write-env",
     "check": "node --check src/privacy.mjs && node --check src/server.mjs && node --check src/matching.mjs && node --check src/register.mjs && node --check src/generate-viewing-key.mjs"
   },
   "dependencies": {

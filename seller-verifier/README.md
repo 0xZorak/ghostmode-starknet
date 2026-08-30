@@ -11,10 +11,10 @@ export NODE_AUTH_TOKEN="$(gh auth token)"
 npm install
 unset NODE_AUTH_TOKEN
 cp .env.example .env.local
-npm run generate:viewing-key
+npm run generate:viewing-key:write
 ```
 
-Put the generated `SELLER_VIEWING_KEY` and the remaining values in `.env.local`. Keep that key permanently: changing it changes which private notes the seller can discover. Register the seller once, then start the verifier:
+The write command generates `SELLER_VIEWING_KEY` directly into `.env.local`, preserves mode `0600`, does not print the key, and refuses to replace an existing configured key. Put the remaining values in `.env.local`. Keep the viewing key permanently: changing it changes which private notes the seller can discover. Register the seller once, then start the verifier:
 
 ```bash
 npm run register
@@ -31,3 +31,5 @@ GHOSTMODE_SELLER_VERIFIER_TOKEN=<same random token as the verifier>
 ```
 
 The proving and discovery URLs are supplied by the STRK20 operator. They are not ordinary Starknet RPC URLs and cannot be replaced with Alchemy.
+
+The pinned official SDK currently brings `starknet-devnet → decompress@4.2.1`, which npm flags for archive path-traversal vulnerabilities with no available fix. The verifier does not invoke devnet or archive extraction. Keep that tooling out of the production runtime, isolate the service, and upgrade when the official SDK removes or fixes the dependency; do not force an incompatible audit rewrite.

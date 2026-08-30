@@ -4,20 +4,6 @@ This file contains only actions that cannot be completed safely without human au
 
 ## Open
 
-### GM-ACT-001 — Authorize a dedicated Sepolia seller account
-
-- Priority: P0
-- Environment: Sepolia
-- Reason: seller registration and live verification require a dedicated low-value account and wallet-authorized funding.
-- Exact steps:
-  1. Create a new Starknet Sepolia account that is not your primary wallet.
-  2. Fund it with Sepolia STRK from a faucet.
-  3. Store its address and private key only in `seller-verifier/.env.local` using the names in `seller-verifier/.env.example`.
-  4. Reply only `done` and the public account address.
-- Expected result: the public account exists and has enough testnet STRK for registration.
-- What to return: public address and `done` only.
-- Safety warning: never send the account private key or seed phrase.
-
 ### GM-ACT-003 — Authorize hosted infrastructure accounts
 
 - Priority: P1
@@ -32,19 +18,18 @@ This file contains only actions that cannot be completed safely without human au
 - What to return: service names and public URLs only.
 - Safety warning: never send hosting, database, or API tokens.
 
-### GM-ACT-004 — Grant GitHub Packages read access locally
+### GM-ACT-007 — Provision compatible STRK20 proving and discovery services
 
-- Priority: P1
-- Environment: Local development
-- Reason: the public StarkWare Privacy SDK is distributed through GitHub Packages; the current GitHub CLI token returned HTTP 403 because it lacks `read:packages`.
+- Priority: P0
+- Environment: Sepolia infrastructure
+- Reason: SDK registration and seller note discovery require a transaction prover and discovery service compatible with the deployed Sepolia pool. They are not ordinary Starknet RPC endpoints, and no public endpoints are published in the official SDK documentation.
 - Exact steps:
-  1. Run `gh auth refresh -h github.com -s read:packages` in your terminal.
-  2. Complete GitHub's browser authorization.
-  3. Do not display or copy the resulting token.
-  4. Reply only `done`.
-- Expected result: `gh auth status` succeeds and local package installation can access `@starkware-libs/starknet-privacy-sdk`.
-- What to return: `done` only.
-- Safety warning: never paste the GitHub token into chat or commit it to `.npmrc`.
+  1. Ask the STRK20/CoreStars operator for Sepolia transaction-prover and discovery-service URLs compatible with Privacy SDK `0.14.3-rc.5`, or authorize a suitable remote host for the matching official containers.
+  2. Store the resulting URLs only as `STRK20_PROVING_SERVICE_URL` and `STRK20_INDEXER_URL` in `seller-verifier/.env.local` or the host secret manager.
+  3. Reply with only the non-secret service hostnames and `done`.
+- Expected result: both services pass their documented health checks and seller registration can generate a proof.
+- What to return: public service hostnames only; no credentials or viewing keys.
+- Safety warning: proving and discovery requests handle privacy-sensitive material. Use HTTPS, matching releases, and operator-approved services; do not substitute a public RPC URL.
 
 ### GM-ACT-005 — Restore GitHub Actions billing access
 
@@ -61,6 +46,16 @@ This file contains only actions that cannot be completed safely without human au
 - Safety warning: never send payment-card details, billing screenshots containing private data, or GitHub credentials.
 
 ## Completed
+
+### GM-ACT-001 — Authorize a dedicated Sepolia seller account
+
+- Completed: 2026-08-30
+- Evidence: seller account `0x00402b00c42ab2c6910cb29a27f089246add3a5788a347f56da35489cbd17c1c` exists as an Argent account, its configured signer matches the onchain owner, and its read-only Sepolia STRK balance was approximately 3.34 STRK. The protected environment file has mode `0600`.
+
+### GM-ACT-004 — Grant GitHub Packages read access locally
+
+- Completed: 2026-08-30
+- Evidence: GitHub device authorization completed for `0xZorak`; the pinned `@starkware-libs/starknet-privacy-sdk@0.14.3-rc.5` dependency installed successfully and verifier syntax checks pass.
 
 ### GM-ACT-006 — Top up the Sepolia ReceiptGate deployer
 
