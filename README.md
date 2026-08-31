@@ -1,23 +1,23 @@
 # GhostMode
 
-**Privacy-aware execution for AI agents on Starknet.**
+**GhostMode compiles an AI agent's intended Starknet action into the safest available STRK20 route—and refuses actions it cannot honestly make private.**
 
 GhostMode evaluates what an agent action would reveal, chooses a supported STRK20 route, and refuses to submit when the requested confidentiality cannot be met. The flagship flow is an HTTP 402-style purchase: an agent pays a seller with an encrypted STRK20 note, records an opaque receipt in the same pool transaction, and receives the resource only after both sides of the payment are verified.
 
 > [!IMPORTANT]
-> GhostMode is a hackathon prototype, not an audited payment product. The policy engine, SDK, API, Cairo contract, and local verification flow are implemented and tested. A compatible ReceiptGate is deployed and configured on Sepolia, but the seller verifier and complete private purchase are not live-verified.
+> GhostMode is a hackathon prototype, not an audited payment product. The policy engine, SDK, API, Cairo contract, fee/maturity preflight, and local seller verifier are implemented and tested. A compatible ReceiptGate is deployed on Sepolia and a 1 STRK shield has been accepted. The dedicated seller's one-time STRK20 registration and the complete private purchase still require live evidence.
 
 ## For judges
 
 | Question | Answer |
 |---|---|
-| What did we build? | A privacy policy engine, wallet-keyless agent SDK, STRK20 action builder, signed Cairo receipt gate, and seller-side note verifier. |
+| What did we build? | A privacy compiler, wallet-keyless agent SDK, STRK20 action builder, signed Cairo receipt gate, and seller-side note verifier. |
 | What problem does it solve? | Public agent wallets can expose strategy, suppliers, budgets, and service usage through repeated payments. |
 | Where is STRK20 used? | Shielded balances, encrypted transfers, Wallet API proving/submission, and the atomic `privacy_invoke` receipt action. |
 | What is private? | In a normal encrypted pool transfer: the in-pool sender/recipient relationship, token, amount, and spent-note linkage. |
 | What remains observable? | Shield/unshield edges, transaction timing, STRK20 use, ReceiptGate address, opaque quote commitment, and offchain network metadata. |
 | What should I test? | Privacy refusal, compatibility analysis, quote inspection, wallet capability detection, unit/integration tests, and the Cairo replay/authorization tests. |
-| Is the full payment live? | Not yet. The signed ReceiptGate is deployed and verified on Sepolia; seller registration, note discovery, private payment, and unlock still need live evidence. |
+| Is the full payment live? | Not yet. Shielding and the signed ReceiptGate are live-verified on Sepolia. Seller registration, incoming-note discovery, private payment, and unlock still need live evidence. |
 
 Core implementation: [`src/lib/ghostmode/`](src/lib/ghostmode/), [`src/app/api/`](src/app/api/), [`cairo/src/lib.cairo`](cairo/src/lib.cairo), and [`seller-verifier/`](seller-verifier/).
 
@@ -60,6 +60,15 @@ If a requested privacy property cannot be satisfied, GhostMode returns `UNSUPPOR
 GhostMode is not just “private payments.” Its abstraction is **privacy-aware execution**: an agent describes an action and its privacy requirements; GhostMode decides how—or whether—it can execute.
 
 Implemented capabilities include strict privacy evaluation, a deterministic disclosure score, Wallet API capability detection, shield/balance/private-payment actions, simulation-before-submit, timeout recovery, a typed agent SDK, an HTTP API, a seller-authorized receipt contract, fail-closed note verification, and a compatibility compiler for other Starknet actions.
+
+### Why this is not another private x402 checkout
+
+Private x402 payment is the flagship proof, not the whole product. GhostMode's reusable output is a machine-readable decision: which STRK20 route is valid, which privacy properties it can actually provide, which public metadata remains, and whether execution must be refused. The same compiler already evaluates transfers, payment gates, swaps, lending/vault calls, escrow, and custom Cairo actions against STRK20's one-external-invoke and open-note constraints.
+
+The distinction is simple:
+
+- A private checkout answers **“how do I pay this seller privately?”**
+- GhostMode answers **“can this agent action be private at all, which reviewed route makes it so, and should the agent refuse to run?”**
 
 ```text
 WITHOUT GHOSTMODE                  WITH GHOSTMODE
@@ -262,6 +271,8 @@ scarb test
 |---|---|---|
 | Starknet Sepolia | STRK20 pool | Read-only contract check passed on 2026-08-29. |
 | Starknet Sepolia | Current signed ReceiptGate | Deployed and configuration-verified on 2026-08-30. |
+| Starknet Sepolia | Buyer shield | 1 STRK pool deposit accepted and publicly evidenced on 2026-08-31. |
+| Starknet Sepolia | Seller verifier | Healthy locally with live prover/discovery services; seller registration awaits sufficient Sepolia STRK. |
 | Starknet Sepolia | Historical ReceiptGate | Deployed, but ABI-incompatible with this build; do not configure it. |
 | Starknet Mainnet | STRK20 pool | Read-only contract check passed on 2026-08-29. |
 | Starknet Mainnet | ReceiptGate | Not deployed or configured. |

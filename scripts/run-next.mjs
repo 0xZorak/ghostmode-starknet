@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const secretFile = resolve(".secrets/quote-signer.env");
+const localSellerFile = resolve("seller-verifier/.env.local");
 const childEnv = { ...process.env };
 
 if (existsSync(secretFile)) {
@@ -15,6 +16,19 @@ if (existsSync(secretFile)) {
     const value = line.slice(separator + 1).trim();
     if (!/^[A-Z][A-Z0-9_]*$/.test(key)) throw new Error("Invalid quote-signer environment key.");
     if (childEnv[key] === undefined) childEnv[key] = value;
+  }
+}
+
+// Local development keeps the seller key material isolated in the verifier
+// process. Only share its bearer token with Next.js, never its account or
+// viewing keys. Production deployments must configure both values normally.
+if (existsSync(localSellerFile) && childEnv.GHOSTMODE_SELLER_VERIFIER_TOKEN === undefined) {
+  for (const rawLine of readFileSync(localSellerFile, "utf8").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line.startsWith("GHOSTMODE_SELLER_VERIFIER_TOKEN=")) continue;
+    childEnv.GHOSTMODE_SELLER_VERIFIER_TOKEN = line.slice(line.indexOf("=") + 1).trim();
+    childEnv.GHOSTMODE_SELLER_VERIFIER_URL ??= "http://127.0.0.1:8787/verify-note";
+    break;
   }
 }
 

@@ -54,6 +54,8 @@ type Readiness = {
     network: string;
     receiptGateConfigured: boolean;
     sellerConfigured: boolean;
+    sellerRegistered: boolean;
+    poolFee: string;
     sellerVerifierConfigured: boolean;
     quoteSignerConfigured: boolean;
     receiptAuthorizationConfigured: boolean;
@@ -154,6 +156,7 @@ export default function GhostWorkbench() {
   const [compatibilityReport, setCompatibilityReport] = useState<CompatibilityReport | null>(null);
   const [registration, setRegistration] = useState<PrivacyRegistration>("unknown");
   const [publicStrkBalance, setPublicStrkBalance] = useState<bigint | null>(null);
+  const [privateStrkBalance, setPrivateStrkBalance] = useState<bigint | null>(null);
   const [chainEvidence, setChainEvidence] = useState<ChainEvidence | null>(null);
   const [pendingShield, setPendingShield] = useState<PendingShield | null>(null);
   const [readiness, setReadiness] = useState<Readiness | null>(null);
@@ -178,6 +181,13 @@ export default function GhostWorkbench() {
       return false;
     }
   }, [quote]);
+  const poolFee = readiness ? BigInt(readiness.checks.poolFee || "0") : null;
+  const privateRequired = quote && poolFee !== null ? BigInt(quote.amount) + poolFee : null;
+  const privateBalanceSufficient = privateStrkBalance === null || privateRequired === null || privateStrkBalance >= privateRequired;
+  const latestDeposit = chainEvidence?.deposits.at(-1) ?? null;
+  const latestDepositConfirmations = latestDeposit && chainEvidence
+    ? Math.max(0, chainEvidence.latestBlock - latestDeposit.block)
+    : null;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -614,6 +624,22 @@ export default function GhostWorkbench() {
       setReceipt({ state: "error", title: `${networkLabel} execution is not configured`, detail: "Set the deployed ReceiptGate and a registered seller address in the environment." });
       return;
     }
+    if (readiness && !readiness.checks.sellerRegistered) {
+      setReceipt({
+        state: "error",
+        title: "Seller privacy registration required",
+        detail: `The configured seller ${quote.seller} has no STRK20 public key on ${quote.chainId}. Open that exact seller account in a privacy-enabled wallet, activate privacy/register it with the pool, then refresh this page. No payment was submitted.`,
+      });
+      return;
+    }
+    if (!privateBalanceSufficient && privateRequired !== null && privateStrkBalance !== null) {
+      setReceipt({
+        state: "error",
+        title: "More shielded STRK is required",
+        detail: `This payment needs ${formatStrk(privateRequired.toString())} shielded STRK: ${formatStrk(quote.amount)} STRK for the seller plus the live ${poolFee === null ? "unknown" : formatStrk(poolFee.toString())} STRK pool fee. Your wallet reported ${formatStrk(privateStrkBalance.toString())} STRK.`,
+      });
+      return;
+    }
     if (GhostModeTargetNetwork === "mainnet" && !window.confirm(`MAINNET — REAL FUNDS\n\nPay ${formatStrk(quote.amount)} STRK for ${quote.resource.name}?`)) {
       setReceipt({ state: "idle", title: "Mainnet payment cancelled", detail: "No transaction was submitted and funds did not move." });
       return;
@@ -654,6 +680,14 @@ export default function GhostWorkbench() {
         }
       } else if (isUserRejected(detail)) {
         setReceipt({ state: "idle", title: "Private purchase cancelled", detail: "The wallet request was rejected and the quote was not resubmitted." });
+      } else if (detail.toLowerCase().includes("insufficient") || detail.includes("BALANCE")) {
+        setReceipt({
+          state: "error",
+          title: "Private balance cannot cover payment + pool fee",
+          detail: `The live STRK20 fee is ${poolFee === null ? "unavailable" : `${formatStrk(poolFee.toString())} STRK`}. A ${formatStrk(quote.amount)} STRK purchase therefore needs ${privateRequired === null ? "that amount plus the pool fee" : `${formatStrk(privateRequired.toString())} shielded STRK`}. Read the shielded balance, then shield enough and wait at least 10 blocks before retrying.`,
+        });
+      } else if (detail.toLowerCase().includes("matur") || detail.includes("CREATED_TOO_RECENTLY")) {
+        setReceipt({ state: "error", title: "Shielded note is still maturing", detail: "Wait until at least 10 Starknet blocks have passed since the shield transaction, then read the shielded balance and retry." });
       } else {
         setReceipt({ state: "error", title: "Private purchase failed", detail });
       }
@@ -668,8 +702,16 @@ export default function GhostWorkbench() {
     try {
       await assertCurrentWallet();
       setReceipt({ state: "loading", title: "Reading encrypted notes" });
-      const balances = await ghostMode.balances();
+      const balances = await ghostMode.balances([addrSTRK]);
       const value = (balances as { value?: unknown }).value ?? balances;
+      const entries = Array.isArray(value) ? value : [];
+      const strkEntry = entries.find((entry) => {
+        const candidate = entry as { token?: unknown; token_address?: unknown; 0?: unknown };
+        const token = candidate.token ?? candidate.token_address ?? candidate[0];
+        try { return num.toBigInt(token as string) === num.toBigInt(addrSTRK); } catch { return false; }
+      }) as { amount?: unknown; balance?: unknown; 1?: unknown } | undefined;
+      const rawBalance = strkEntry?.amount ?? strkEntry?.balance ?? strkEntry?.[1];
+      if (rawBalance !== undefined) setPrivateStrkBalance(num.toBigInt(rawBalance as string));
       setRegistration("ready");
       setReceipt({ state: "success", title: "Shielded balances discovered", detail: JSON.stringify(value) });
     } catch (error) {
@@ -933,8 +975,19 @@ export default function GhostWorkbench() {
                     <li data-pass={readiness?.checks.receiptGateConfigured === true}>ReceiptGate configured</li>
                     <li data-pass={readiness?.checks.receiptAuthorizationConfigured === true}>Signed receipt authority</li>
                     <li data-pass={readiness?.checks.sellerConfigured === true}>Seller configured</li>
+                    <li data-pass={readiness?.checks.sellerRegistered === true}>Seller registered with STRK20</li>
                     <li data-pass={readiness?.checks.sellerVerifierConfigured === true}>Private-note verifier configured</li>
                   </ul>
+                </div>
+                <div className={styles.publicFunding} data-low={!privateBalanceSufficient}>
+                  <span>PRIVATE PAYMENT BUDGET</span>
+                  <strong>{privateStrkBalance === null ? "Read balance to check" : `${formatStrk(privateStrkBalance.toString())} shielded STRK`}</strong>
+                  <p>{quote && poolFee !== null
+                    ? `${formatStrk(quote.amount)} payment + ${formatStrk(poolFee.toString())} pool fee = ${formatStrk((BigInt(quote.amount) + poolFee).toString())} STRK required.`
+                    : "Inspect a quote to calculate payment plus the live pool fee."}</p>
+                  {latestDepositConfirmations !== null && latestDepositConfirmations < 10
+                    ? <p>Latest shield is {latestDepositConfirmations}/10 blocks mature. Wait before spending it.</p>
+                    : latestDepositConfirmations !== null ? <p>Latest shield has passed the 10-block maturity window.</p> : null}
                 </div>
                 {registration === "required" ? (
                   <div className={styles.registrationNotice}>
@@ -985,9 +1038,13 @@ export default function GhostWorkbench() {
                   type="button"
                   className={styles.primaryButton}
                   onClick={executePurchase}
-                  disabled={!quote || !connected || receipt.state === "loading"}
+                  disabled={!quote || !connected || receipt.state === "loading" || readiness?.readyForPrivatePurchaseTesting === false || !privateBalanceSufficient}
                   data-state={receipt.state}
-                  title={!configured ? `Configure a deployed gate and registered seller to enable ${GhostModeTargetNetwork} execution` : undefined}
+                  title={!configured
+                    ? `Configure a deployed gate and registered seller to enable ${GhostModeTargetNetwork} execution`
+                    : readiness?.checks.sellerRegistered === false
+                      ? "The configured seller must activate STRK20 privacy before it can receive private payments"
+                      : undefined}
                 >
                   {receipt.state === "loading" ? "Waiting for Starknet…" : "Execute private purchase"}
                 </button>
