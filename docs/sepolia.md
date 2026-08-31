@@ -95,7 +95,7 @@ curl http://localhost:3000/api/health
 curl http://localhost:3000/api/readiness
 ```
 
-Require `ready: true` and `readyForResourceUnlockTesting: true` before claiming the complete demo is configured.
+Require `readyForResourceUnlockTesting: true` for the single-process local demo. `readyForProduction` must also be true before claiming a durable deployment is configured; it stays false with the development-only ephemeral quote store.
 
 ## 9. Manual wallet flow
 
@@ -113,4 +113,4 @@ Require `ready: true` and `readyForResourceUnlockTesting: true` before claiming 
 
 ## Current verification status
 
-On 2026-08-30 the current ReceiptGate was deployed at `0x047eecea2ea640de0c583a501fd001d639cd9bce5f0dc5cee7be6c95f048d71c`. Its pool and quote-authority configuration pass read-only verification. The buyer has a nonzero pool public key. Seller registration/service, shielding, the private payment, receipt creation, and resource unlock are not yet verified. Do not describe this build as a working full Sepolia payment until those steps produce real evidence.
+The current ReceiptGate is deployed at `0x047eecea2ea640de0c583a501fd001d639cd9bce5f0dc5cee7be6c95f048d71c`; its pool and quote-authority configuration pass read-only verification. The buyer has a nonzero pool public key and a 1 STRK shield deposit was accepted. The dedicated seller registered successfully in transaction `0x2c76c13721b239bdd0bf6d25e59ecceb0b6fd464142ad27ba4bd3ba4ede0782`, its pool public key is nonzero, and the local verifier health check passes. The private payment, receipt event, incoming-note match, and resource unlock are not yet live-verified. Do not describe this build as a working full Sepolia payment until those steps produce evidence.

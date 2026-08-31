@@ -15,7 +15,13 @@ for (const name of requiredNames) {
   if (!process.env[name]) throw new Error(`${name} is required`);
 }
 
-export const provider = new RpcProvider({ nodeUrl: process.env.SELLER_RPC_URL });
+// STRK20 proof facts are part of the v3 transaction hash. Pinning the RPC
+// schema prevents an older endpoint from signing different data than the
+// Argent account validates onchain.
+export const provider = new RpcProvider({
+  nodeUrl: process.env.SELLER_RPC_URL,
+  specVersion: "0.10.3",
+});
 
 export const account = new Account({
   provider,

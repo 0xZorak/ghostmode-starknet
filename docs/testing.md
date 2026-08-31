@@ -52,7 +52,7 @@ npm run build
 npm --prefix seller-verifier run check
 ```
 
-This performs JavaScript syntax checks only. Exact note matching is unit-tested by the root test suite. Seller dependency installation, registration, note discovery, and service-to-service behavior remain blocked on GitHub Packages authorization and dedicated testnet keys.
+This performs JavaScript syntax checks only. Exact note matching is unit-tested by the root test suite. Seller dependencies are installed, the dedicated Sepolia seller registered successfully, and the local service health check passes. Incoming-note discovery and service-to-service release still require the first real private payment.
 
 ## Cairo tests
 
@@ -86,7 +86,7 @@ npm run mainnet:dry-run
 
 The “dry run” is still a read-only configuration check; it cannot estimate a private transaction without a connected privacy wallet and prepared proof.
 
-## Verified results: 2026-08-29
+## Verified results: 2026-08-31
 
 | Command | Result |
 |---|---|
@@ -100,6 +100,8 @@ The “dry run” is still a read-only configuration check; it cannot estimate a
 | Mainnet read-only network check | RPC, pool, token passed; gate/verifier not configured |
 | Fresh clone of `f5fc22f` | `npm ci` found 0 vulnerabilities; `npm run check` passed |
 | GitHub Actions run `33224762551` | Jobs did not start: account locked due to a GitHub billing issue |
+| Sepolia seller registration | Accepted on L2: `0x2c76c13721b239bdd0bf6d25e59ecceb0b6fd464142ad27ba4bd3ba4ede0782` |
+| Seller verifier health | Passed locally on the registered Sepolia identity |
 
 ## Manual live test still required
 

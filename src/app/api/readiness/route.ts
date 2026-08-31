@@ -67,10 +67,20 @@ export async function GET() {
     storageReady: quoteStoreReady(),
     storageDurable: quoteStoreDurable(),
   };
+  const privatePurchaseReady = checks.receiptGateConfigured
+    && checks.sellerConfigured
+    && checks.sellerRegistered
+    && checks.receiptAuthorizationConfigured;
+  const resourceUnlockReady = privatePurchaseReady
+    && checks.sellerVerifierConfigured
+    && checks.storageReady;
   return NextResponse.json({
     readyForShieldTesting: true,
-    readyForPrivatePurchaseTesting: checks.receiptGateConfigured && checks.sellerConfigured && checks.sellerRegistered && checks.receiptAuthorizationConfigured,
-    readyForResourceUnlockTesting: checks.receiptGateConfigured && checks.sellerConfigured && checks.sellerRegistered && checks.receiptAuthorizationConfigured && checks.sellerVerifierConfigured && checks.storageReady && checks.storageDurable,
+    readyForPrivatePurchaseTesting: privatePurchaseReady,
+    // Ephemeral storage is sufficient for a single-process local E2E test.
+    // Production remains explicitly false until storage is durable.
+    readyForResourceUnlockTesting: resourceUnlockReady,
+    readyForProduction: resourceUnlockReady && checks.storageDurable,
     checks,
   }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -51,9 +51,9 @@ Changing the key changes the seller's note-discovery identity. Back it up secure
 npm run register
 ```
 
-This is a real Sepolia transaction. The script proves against `head - 10`, submits a v3 transaction with `tip: 0n`, and waits for acceptance. The chosen proving block must already include account deployment and other transparent prerequisites. Do not rerun registration blindly; registering an already-registered identity reverts.
+This is a real Sepolia transaction. The script proves against `head - 10`, pins RPC 0.10.3 so proof facts participate in the transaction hash, submits with live-price bounded resource caps and a nonzero tip floor, and waits for acceptance. The chosen proving block must already include account deployment and other transparent prerequisites. The script checks registration first and submits nothing when the identity is already registered.
 
-The seller runtime dependencies were not installed during the 2026-08-29 documentation verification, so this live SDK registration path remains manually unverified in this repository.
+The dedicated seller registered successfully on Sepolia in transaction `0x2c76c13721b239bdd0bf6d25e59ecceb0b6fd464142ad27ba4bd3ba4ede0782`. Its pool public key was read back as nonzero and the transaction receipt reports `SUCCEEDED` / `ACCEPTED_ON_L2`.
 
 ## Start
 

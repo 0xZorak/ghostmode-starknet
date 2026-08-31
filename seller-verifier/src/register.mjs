@@ -43,7 +43,9 @@ try {
   const priceOf = (key) => BigInt(block?.[key]?.price_in_fri ?? 0) || 1n;
   const resourceBounds = {
     l1_gas: { max_amount: 100n, max_price_per_unit: priceOf("l1_gas_price") * 2n },
-    l2_gas: { max_amount: 60_000_000n, max_price_per_unit: priceOf("l2_gas_price") * 2n },
+    // Sepolia validation measured ~75.9M for this proof-bearing Argent call.
+    // Keep a bounded margin instead of relying on proof-less estimation.
+    l2_gas: { max_amount: 100_000_000n, max_price_per_unit: priceOf("l2_gas_price") * 2n },
     l1_data_gas: { max_amount: 6_000n, max_price_per_unit: priceOf("l1_data_gas_price") * 2n },
   };
   const networkFeeCap = Object.values(resourceBounds).reduce(

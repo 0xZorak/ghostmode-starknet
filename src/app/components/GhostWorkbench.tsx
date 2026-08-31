@@ -50,6 +50,7 @@ type Readiness = {
   readyForShieldTesting: boolean;
   readyForPrivatePurchaseTesting: boolean;
   readyForResourceUnlockTesting: boolean;
+  readyForProduction: boolean;
   checks: {
     network: string;
     receiptGateConfigured: boolean;

@@ -5,7 +5,7 @@
 GhostMode evaluates what an agent action would reveal, chooses a supported STRK20 route, and refuses to submit when the requested confidentiality cannot be met. The flagship flow is an HTTP 402-style purchase: an agent pays a seller with an encrypted STRK20 note, records an opaque receipt in the same pool transaction, and receives the resource only after both sides of the payment are verified.
 
 > [!IMPORTANT]
-> GhostMode is a hackathon prototype, not an audited payment product. The policy engine, SDK, API, Cairo contract, fee/maturity preflight, and local seller verifier are implemented and tested. A compatible ReceiptGate is deployed on Sepolia and a 1 STRK shield has been accepted. The dedicated seller's one-time STRK20 registration and the complete private purchase still require live evidence.
+> GhostMode is a hackathon prototype, not an audited payment product. The policy engine, SDK, API, Cairo contract, fee/maturity preflight, and local seller verifier are implemented and tested. A compatible ReceiptGate is deployed on Sepolia, a 1 STRK shield has been accepted, and the dedicated seller is registered. The complete private purchase and resource unlock still require live evidence.
 
 ## For judges
 
@@ -17,7 +17,7 @@ GhostMode evaluates what an agent action would reveal, chooses a supported STRK2
 | What is private? | In a normal encrypted pool transfer: the in-pool sender/recipient relationship, token, amount, and spent-note linkage. |
 | What remains observable? | Shield/unshield edges, transaction timing, STRK20 use, ReceiptGate address, opaque quote commitment, and offchain network metadata. |
 | What should I test? | Privacy refusal, compatibility analysis, quote inspection, wallet capability detection, unit/integration tests, and the Cairo replay/authorization tests. |
-| Is the full payment live? | Not yet. Shielding and the signed ReceiptGate are live-verified on Sepolia. Seller registration, incoming-note discovery, private payment, and unlock still need live evidence. |
+| Is the full payment live? | Not yet. Shielding, the signed ReceiptGate, seller registration, and verifier health are live-verified on Sepolia. The private payment, incoming-note match, and resource unlock still need live evidence. |
 
 Core implementation: [`src/lib/ghostmode/`](src/lib/ghostmode/), [`src/app/api/`](src/app/api/), [`cairo/src/lib.cairo`](cairo/src/lib.cairo), and [`seller-verifier/`](seller-verifier/).
 
@@ -272,7 +272,8 @@ scarb test
 | Starknet Sepolia | STRK20 pool | Read-only contract check passed on 2026-08-29. |
 | Starknet Sepolia | Current signed ReceiptGate | Deployed and configuration-verified on 2026-08-30. |
 | Starknet Sepolia | Buyer shield | 1 STRK pool deposit accepted and publicly evidenced on 2026-08-31. |
-| Starknet Sepolia | Seller verifier | Healthy locally with live prover/discovery services; seller registration awaits sufficient Sepolia STRK. |
+| Starknet Sepolia | Seller registration | Accepted on L2 in [`0x2c76…0782`](https://sepolia.voyager.online/tx/0x2c76c13721b239bdd0bf6d25e59ecceb0b6fd464142ad27ba4bd3ba4ede0782); pool public key verified nonzero. |
+| Starknet Sepolia | Seller verifier | Healthy locally with live prover/discovery services and the registered dedicated identity. |
 | Starknet Sepolia | Historical ReceiptGate | Deployed, but ABI-incompatible with this build; do not configure it. |
 | Starknet Mainnet | STRK20 pool | Read-only contract check passed on 2026-08-29. |
 | Starknet Mainnet | ReceiptGate | Not deployed or configured. |
